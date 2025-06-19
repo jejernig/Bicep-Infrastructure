@@ -1,0 +1,630 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Define bicep.config.json Schema and Validation",
+        "description": "Create the JSON schema for bicep.config.json that will drive the entire infrastructure deployment, along with validation tooling to ensure configuration correctness.",
+        "details": "1. Design a comprehensive JSON schema that includes:\n   - Project metadata (name, environment, region)\n   - Feature toggles for optional modules (enableRedis, enableCdn, etc.)\n   - APIM configuration (apimMode: 'shared'|'dedicated', sharedApimResourceId)\n   - Module-specific configurations\n2. Implement validation using JSON Schema:\n   ```javascript\n   const Ajv = require('ajv');\n   const ajv = new Ajv();\n   const schema = require('./bicep.config.schema.json');\n   const validate = ajv.compile(schema);\n   \n   function validateConfig(config) {\n     const valid = validate(config);\n     if (!valid) {\n       throw new Error(`Invalid configuration: ${JSON.stringify(validate.errors)}`);\n     }\n     return config;\n   }\n   ```\n3. Create default templates for different project types\n4. Ensure naming convention enforcement (e.g., `${projectPrefix}-${env}-${region}-${resourceType}`)\n5. Document all configuration options with examples",
+        "testStrategy": "1. Create test configurations for various scenarios (minimal, full-featured)\n2. Validate against schema to ensure proper error messages\n3. Test with edge cases (missing required fields, invalid values)\n4. Verify that validation catches common misconfigurations\n5. Ensure schema is extensible for future modules",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design bicep.config.json schema structure",
+            "description": "Create a comprehensive JSON schema that defines all valid properties, types, and constraints for the bicep.config.json file",
+            "dependencies": [],
+            "details": "Define the root structure, required vs optional fields, property types, and nested objects. Include support for linting rules, formatting preferences, module configurations, and environment settings. Ensure the schema is extensible for future additions. Reference existing Bicep documentation to ensure all configuration options are covered.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement schema validation logic",
+            "description": "Develop the validation system that will verify bicep.config.json files against the defined schema",
+            "dependencies": [
+              1
+            ],
+            "details": "Create validation functions that check for schema compliance, type correctness, and constraint satisfaction. Implement error collection to provide comprehensive feedback on validation failures. Include support for both synchronous and asynchronous validation. Design the validation API to be easily integrated with CLI tools, IDEs, and CI/CD pipelines.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Create default templates and examples",
+            "description": "Develop a set of default bicep.config.json templates for common scenarios and usage patterns",
+            "dependencies": [
+              1
+            ],
+            "details": "Create templates for different project types (web apps, microservices, data pipelines). Include examples with comments explaining each configuration option. Provide minimal, standard, and comprehensive configuration examples. Ensure templates follow best practices and demonstrate proper usage of all major schema features.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Establish naming conventions and best practices",
+            "description": "Define and document naming conventions, patterns, and best practices for bicep.config.json files",
+            "dependencies": [
+              1,
+              3
+            ],
+            "details": "Create guidelines for property naming, file organization, and configuration management. Document recommended patterns for different deployment environments. Include guidance on versioning configuration files and managing environment-specific settings. Provide recommendations for handling sensitive configuration data.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Create comprehensive documentation",
+            "description": "Develop detailed documentation covering the schema, validation system, usage examples, and integration guides",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Write technical documentation explaining the schema structure and validation rules. Create user guides with step-by-step instructions for common tasks. Include troubleshooting sections for common validation errors. Document the API for the validation system. Create integration guides for popular IDEs, build systems, and CI/CD platforms.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Develop main.bicep Orchestrator",
+        "description": "Build the main Bicep orchestration script that parses the configuration and coordinates module deployment.",
+        "details": "1. Create main.bicep with parameters that match bicep.config.json schema\n2. Implement configuration parsing logic:\n   ```bicep\n   param config object\n   \n   var projectName = config.projectName\n   var environment = config.environment\n   var location = config.location\n   var enableKeyVault = contains(config, 'enableKeyVault') ? config.enableKeyVault : false\n   // Additional config parsing\n   ```\n3. Add conditional module loading based on feature flags:\n   ```bicep\n   module keyVault './modules/keyVault.bicep' = if (enableKeyVault) {\n     name: '${projectName}-${environment}-kv-deployment'\n     params: {\n       keyVaultName: '${projectName}-${environment}-kv'\n       location: location\n       // Additional parameters from config\n     }\n   }\n   ```\n4. Implement resource naming convention helper function\n5. Set up resource dependencies between modules\n6. Create output section to expose all relevant connection strings and endpoints",
+        "testStrategy": "1. Test with ARM what-if operation to validate deployment plan\n2. Verify module loading logic with different configuration combinations\n3. Test resource naming convention consistency\n4. Validate that dependencies are correctly established\n5. Ensure all required outputs are exposed",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define Parameter Structure",
+            "description": "Create the parameter structure for main.bicep that will accept configuration input from deployment pipelines",
+            "dependencies": [],
+            "details": "Define all required parameters including environment name, region, tags, and configuration objects. Create parameter types that support nested configuration objects. Include default values where appropriate and parameter decorators for allowed values. Document each parameter with clear descriptions of expected values and formats.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement Configuration Parsing Logic",
+            "description": "Develop logic to parse and validate the incoming configuration objects",
+            "dependencies": [
+              1
+            ],
+            "details": "Create variables to extract and transform configuration values. Implement validation checks for required configuration properties. Create helper functions for common configuration operations. Ensure proper error handling for missing or invalid configuration values. Document the configuration structure expected by the orchestrator.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Create Resource Naming Convention System",
+            "description": "Implement a consistent naming convention system for all resources",
+            "dependencies": [
+              2
+            ],
+            "details": "Define variables for resource name prefixes and suffixes based on environment. Create functions to generate standardized resource names. Ensure compliance with Azure naming restrictions for different resource types. Document the naming convention patterns for all resource types. Implement logic to handle special characters and length limitations.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Implement Conditional Module Loading",
+            "description": "Create logic for conditionally deploying modules based on configuration flags",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement conditional expressions to determine which modules should be deployed. Create module references with appropriate scoping (resourceGroup, subscription, etc.). Pass the correct subset of parameters to each module. Ensure proper error handling for module deployment failures. Document the conditions that trigger each module deployment.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Establish Module Dependencies",
+            "description": "Configure explicit dependencies between modules to ensure proper deployment order",
+            "dependencies": [
+              4
+            ],
+            "details": "Analyze resource dependencies across modules. Use the 'dependsOn' property to establish explicit dependencies. Implement implicit dependencies through reference expressions where appropriate. Create a dependency graph documentation to visualize the deployment sequence. Test the deployment order to ensure resources are created in the correct sequence.",
+            "status": "pending"
+          },
+          {
+            "id": 6,
+            "title": "Configure Output Handling",
+            "description": "Define outputs from the main.bicep file to expose important deployment information",
+            "dependencies": [
+              5
+            ],
+            "details": "Identify key outputs needed from each module. Configure output variables to capture and expose these values. Format outputs for easy consumption by deployment pipelines or documentation. Include resource identifiers, connection strings, and other important deployment artifacts. Document the expected outputs and their usage in downstream processes.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Implement Core Module: appService.bicep",
+        "description": "Create the App Service Bicep module with all necessary configurations and outputs.",
+        "details": "1. Create appService.bicep with parameters for name, SKU, configuration:\n   ```bicep\n   param appServiceName string\n   param location string = resourceGroup().location\n   param sku string = 'B1'\n   param runtimeStack string = 'dotnet:6'\n   param appSettings array = []\n   \n   resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {\n     name: '${appServiceName}-plan'\n     location: location\n     sku: {\n       name: sku\n     }\n     properties: {\n       reserved: contains(runtimeStack, 'linux')\n     }\n   }\n   \n   resource appService 'Microsoft.Web/sites@2021-03-01' = {\n     name: appServiceName\n     location: location\n     properties: {\n       serverFarmId: appServicePlan.id\n       siteConfig: {\n         appSettings: appSettings\n         linuxFxVersion: contains(runtimeStack, 'linux') ? runtimeStack : null\n       }\n     }\n   }\n   ```\n2. Add support for app settings from configuration\n3. Implement slot support for production environments\n4. Add managed identity configuration\n5. Configure diagnostic settings\n6. Expose outputs for hostname, principal ID, etc.",
+        "testStrategy": "1. Deploy to test environment with minimal configuration\n2. Verify all properties are correctly applied\n3. Test with different runtime stacks and SKUs\n4. Validate managed identity creation and permissions\n5. Test slot creation and configuration",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create basic App Service resource structure",
+            "description": "Implement the core App Service resource and its required properties in Bicep",
+            "dependencies": [],
+            "details": "Create the main.bicep file for the App Service module with parameters for name, location, SKU, etc. Implement the basic App Service Plan and App Service resources with required properties. Include standard tags and naming convention support. Ensure proper resource relationships are established between the App Service and App Service Plan.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement App Settings and Configuration",
+            "description": "Add support for configuring app settings, connection strings, and other configuration options",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend the module to support app settings as a parameter. Implement connection strings configuration. Add support for site configuration properties like always on, HTTP version, etc. Include CORS settings configuration. Ensure all configuration options are properly documented with parameter descriptions.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Add deployment slot functionality",
+            "description": "Implement support for creating and configuring deployment slots",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Add parameters to control deployment slot creation. Implement the deployment slot resource with proper configuration. Support slot-specific settings and configuration. Ensure proper relationship between slots and the main App Service. Add support for auto-swap settings if applicable.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Configure identity and diagnostics settings",
+            "description": "Implement managed identity support and diagnostic settings for the App Service",
+            "dependencies": [
+              1
+            ],
+            "details": "Add parameters for system-assigned and user-assigned managed identities. Implement diagnostic settings with configurable log categories and retention policies. Add support for sending logs to Log Analytics, Storage Account, or Event Hub. Ensure proper outputs are exposed for the identity information. Include proper documentation for all identity and diagnostic parameters.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Core Module: functionApp.bicep",
+        "description": "Create the Function App Bicep module with storage account, app insights, and necessary configurations.",
+        "details": "1. Create functionApp.bicep with parameters:\n   ```bicep\n   param functionAppName string\n   param location string = resourceGroup().location\n   param storageAccountName string\n   param appInsightsName string\n   param runtime string = 'dotnet'\n   param sku string = 'Y1' // Consumption plan\n   \n   resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {\n     name: storageAccountName\n     location: location\n     sku: {\n       name: 'Standard_LRS'\n     }\n     kind: 'StorageV2'\n   }\n   \n   resource appInsights 'Microsoft.Insights/components@2020-02-02' = {\n     name: appInsightsName\n     location: location\n     kind: 'web'\n     properties: {\n       Application_Type: 'web'\n     }\n   }\n   \n   resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {\n     name: '${functionAppName}-plan'\n     location: location\n     sku: {\n       name: sku\n     }\n     properties: {}\n   }\n   \n   resource functionApp 'Microsoft.Web/sites@2021-03-01' = {\n     name: functionAppName\n     location: location\n     kind: 'functionapp'\n     properties: {\n       serverFarmId: hostingPlan.id\n       siteConfig: {\n         appSettings: [\n           { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }\n           { name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }\n           { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appInsights.properties.InstrumentationKey }\n           { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }\n           { name: 'FUNCTIONS_WORKER_RUNTIME', value: runtime }\n         ]\n       }\n     }\n   }\n   ```\n2. Add support for different hosting plans (consumption, premium, dedicated)\n3. Configure CORS settings\n4. Add custom domain support\n5. Implement health check endpoint configuration\n6. Expose outputs for function URL, storage connection string, etc.",
+        "testStrategy": "1. Deploy to test environment with minimal configuration\n2. Verify function app can be deployed to with sample code\n3. Test with different runtime stacks and hosting plans\n4. Validate storage account and app insights integration\n5. Test custom domain configuration",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Storage Account Resource",
+            "description": "Create the storage account resource required for Function App operation",
+            "dependencies": [],
+            "details": "Implement the storage account resource in the Bicep module with appropriate parameters for name, SKU, kind, and access tier. Include configuration for blob, queue, and table services. Ensure proper naming convention compatibility with Function Apps and implement conditional deployment based on whether a custom storage account is provided.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Configure Application Insights Integration",
+            "description": "Set up Application Insights integration for Function App monitoring",
+            "dependencies": [],
+            "details": "Implement Application Insights resource or reference to existing instance. Configure sampling rate, retention policies, and workspace connection. Create output variables for instrumentation key and connection string. Ensure conditional deployment based on monitoring requirements parameter.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement Hosting Plan Configuration",
+            "description": "Create the hosting plan resource with support for multiple hosting models",
+            "dependencies": [],
+            "details": "Implement App Service Plan resource with support for Consumption, Premium, and Dedicated hosting models. Configure auto-scaling settings, instance counts, and SKU selection. Include parameters for OS preference (Windows/Linux) and implement reserved instances option for production environments.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Configure Function App Settings and Deployment",
+            "description": "Implement the Function App resource with all required settings and connections",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Create the Function App resource with proper references to storage account, app insights, and hosting plan. Implement app settings including runtime stack, version, and environment variables. Configure connection strings, identity settings (MSI), and deployment options. Implement output variables for Function App endpoints and identity information.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Implement Core Module: keyVault.bicep",
+        "description": "Create the Key Vault Bicep module with access policies, secrets, and necessary configurations.",
+        "details": "1. Create keyVault.bicep with parameters:\n   ```bicep\n   param keyVaultName string\n   param location string = resourceGroup().location\n   param enabledForDeployment bool = false\n   param enabledForTemplateDeployment bool = true\n   param enabledForDiskEncryption bool = false\n   param accessPolicies array = []\n   param secrets array = []\n   \n   resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {\n     name: keyVaultName\n     location: location\n     properties: {\n       enabledForDeployment: enabledForDeployment\n       enabledForTemplateDeployment: enabledForTemplateDeployment\n       enabledForDiskEncryption: enabledForDiskEncryption\n       tenantId: subscription().tenantId\n       sku: {\n         name: 'standard'\n         family: 'A'\n       }\n       accessPolicies: accessPolicies\n     }\n   }\n   \n   @batchSize(1)\n   resource keyVaultSecrets 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = [for secret in secrets: {\n     parent: keyVault\n     name: secret.name\n     properties: {\n       value: secret.value\n     }\n   }]\n   ```\n2. Add support for managed identity access policies\n3. Implement network ACL configuration\n4. Add purge protection and soft-delete configuration\n5. Support for certificate and key management\n6. Expose outputs for Key Vault URI and resource ID",
+        "testStrategy": "1. Deploy to test environment with minimal configuration\n2. Verify access policies are correctly applied\n3. Test secret creation and retrieval\n4. Validate managed identity access\n5. Test network ACL restrictions",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create basic Key Vault Bicep module structure",
+            "description": "Set up the foundational structure for the Key Vault Bicep module including parameters, variables, and the main resource definition.",
+            "dependencies": [],
+            "details": "Create a new Bicep file for Key Vault with essential parameters such as name, location, SKU, tenant ID, and resource tags. Define the core Key Vault resource with required properties. Include output values for the Key Vault ID, name, and URI. Implement proper documentation using comments.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement access policies configuration",
+            "description": "Add support for configuring access policies to control permissions for different identities accessing the Key Vault.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create parameters to accept access policy configurations including object IDs, application IDs, and permission sets for keys, secrets, and certificates. Implement the accessPolicies property in the Key Vault resource. Add validation to ensure proper formatting of access policy inputs. Include examples of common access policy scenarios in the documentation.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Add secret management capabilities",
+            "description": "Implement functionality to create and manage secrets within the Key Vault during deployment.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a parameter to accept an array of secrets to be created. Implement a loop to create each secret as a child resource of the Key Vault. Add support for setting content type, expiration date, and activation date for secrets. Include proper error handling and validation for secret names and values. Document best practices for secret management.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Configure network and security settings",
+            "description": "Implement network access rules, firewall settings, and advanced security features for the Key Vault.",
+            "dependencies": [
+              1
+            ],
+            "details": "Add parameters for network ACLs including IP rules, virtual network rules, and default action (Allow/Deny). Implement soft-delete and purge protection configuration options. Add support for enabling Azure RBAC for authorization. Configure private endpoint connections if needed. Include parameters for enabling advanced threat protection. Document security best practices and compliance considerations.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Implement Core Module: sqlDatabase.bicep",
+        "description": "Create the SQL Database Bicep module with server, database, firewall rules, and necessary configurations.",
+        "details": "1. Create sqlDatabase.bicep with parameters:\n   ```bicep\n   param sqlServerName string\n   param sqlDatabaseName string\n   param location string = resourceGroup().location\n   param administratorLogin string\n   @secure()\n   param administratorLoginPassword string\n   param databaseSku object = {\n     name: 'Basic'\n     tier: 'Basic'\n   }\n   param allowAzureIPs bool = true\n   param firewallRules array = []\n   \n   resource sqlServer 'Microsoft.Sql/servers@2021-11-01-preview' = {\n     name: sqlServerName\n     location: location\n     properties: {\n       administratorLogin: administratorLogin\n       administratorLoginPassword: administratorLoginPassword\n       version: '12.0'\n     }\n   }\n   \n   resource sqlDatabase 'Microsoft.Sql/servers/databases@2021-11-01-preview' = {\n     parent: sqlServer\n     name: sqlDatabaseName\n     location: location\n     sku: databaseSku\n     properties: {\n       collation: 'SQL_Latin1_General_CP1_CI_AS'\n     }\n   }\n   \n   resource allowAllAzureIPs 'Microsoft.Sql/servers/firewallRules@2021-11-01-preview' = if (allowAzureIPs) {\n     parent: sqlServer\n     name: 'AllowAllAzureIPs'\n     properties: {\n       startIpAddress: '0.0.0.0'\n       endIpAddress: '0.0.0.0'\n     }\n   }\n   \n   @batchSize(1)\n   resource firewallRule 'Microsoft.Sql/servers/firewallRules@2021-11-01-preview' = [for rule in firewallRules: {\n     parent: sqlServer\n     name: rule.name\n     properties: {\n       startIpAddress: rule.startIpAddress\n       endIpAddress: rule.endIpAddress\n     }\n   }]\n   ```\n2. Add support for Azure AD authentication\n3. Implement geo-replication configuration\n4. Add elastic pool support\n5. Configure auditing and threat detection\n6. Expose outputs for connection string, server FQDN, etc.",
+        "testStrategy": "1. Deploy to test environment with minimal configuration\n2. Verify database creation and connectivity\n3. Test firewall rules configuration\n4. Validate Azure AD authentication\n5. Test connection string output format",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create SQL Server Bicep Module",
+            "description": "Develop the core Bicep module for SQL Server provisioning with configurable parameters",
+            "dependencies": [],
+            "details": "Create a Bicep module that provisions an Azure SQL Server with configurable parameters including server name, location, and resource tags. Include parameters for administrator login credentials with secure string handling. Implement resource outputs for server ID, name, and FQDN.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement SQL Database Configuration",
+            "description": "Add SQL Database resource definition with configurable sizing and performance options",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend the Bicep module to include SQL Database creation with parameters for database name, SKU (Basic, Standard, Premium), max size, elastic pool options, and collation settings. Implement conditional deployment logic for different service tiers and performance levels. Include outputs for database connection information.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Configure Firewall Rules and Network Security",
+            "description": "Implement firewall rules and network security configurations for SQL resources",
+            "dependencies": [
+              1
+            ],
+            "details": "Add parameters and resources for SQL firewall rules including options for Azure services access, specific IP ranges, and subnet access. Implement virtual network rule configurations for private endpoints. Create parameters to toggle 'Allow Azure Services' access and public network access flags with appropriate defaults for security.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Implement Authentication Options",
+            "description": "Add support for multiple authentication methods including AAD and SQL authentication",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend the module to support both SQL authentication and Azure Active Directory authentication. Include parameters for AAD admin configuration, managed identity integration, and conditional deployment of authentication methods. Implement secure parameter handling for credentials and document security best practices.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Create Connection String Management",
+            "description": "Implement connection string output and Key Vault integration for secure storage",
+            "dependencies": [
+              2,
+              4
+            ],
+            "details": "Generate and output connection strings for different authentication methods. Implement optional Key Vault integration to store connection strings as secrets. Create parameters to control connection string format (ADO.NET, JDBC, ODBC) and include conditional logic to handle different authentication methods in the connection strings. Add documentation for connection string usage patterns.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Core Module: serviceBus.bicep",
+        "description": "Create the Service Bus Bicep module with namespace, queues, topics, and necessary configurations.",
+        "details": "1. Create serviceBus.bicep with parameters:\n   ```bicep\n   param namespaceName string\n   param location string = resourceGroup().location\n   param sku string = 'Standard'\n   param queues array = []\n   param topics array = []\n   \n   resource namespace 'Microsoft.ServiceBus/namespaces@2021-11-01' = {\n     name: namespaceName\n     location: location\n     sku: {\n       name: sku\n       tier: sku\n     }\n   }\n   \n   @batchSize(1)\n   resource queue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' = [for q in queues: {\n     parent: namespace\n     name: q.name\n     properties: {\n       lockDuration: contains(q, 'lockDuration') ? q.lockDuration : 'PT1M'\n       maxSizeInMegabytes: contains(q, 'maxSizeInMegabytes') ? q.maxSizeInMegabytes : 1024\n       requiresDuplicateDetection: contains(q, 'requiresDuplicateDetection') ? q.requiresDuplicateDetection : false\n       deadLetteringOnMessageExpiration: contains(q, 'deadLetteringOnMessageExpiration') ? q.deadLetteringOnMessageExpiration : false\n     }\n   }]\n   \n   @batchSize(1)\n   resource topic 'Microsoft.ServiceBus/namespaces/topics@2021-11-01' = [for t in topics: {\n     parent: namespace\n     name: t.name\n     properties: {\n       maxSizeInMegabytes: contains(t, 'maxSizeInMegabytes') ? t.maxSizeInMegabytes : 1024\n       requiresDuplicateDetection: contains(t, 'requiresDuplicateDetection') ? t.requiresDuplicateDetection : false\n     }\n   }]\n   \n   @batchSize(1)\n   resource subscription 'Microsoft.ServiceBus/namespaces/topics/subscriptions@2021-11-01' = [for s in flatten([\n     for topicIndex in range(0, length(topics)): [\n       for sub in topics[topicIndex].subscriptions ?? []: {\n         topicName: topics[topicIndex].name\n         name: sub.name\n         properties: sub\n       }\n     ]\n   ]): {\n     parent: topic[indexOf(topics, first(topics, t => t.name == s.topicName))]\n     name: s.name\n     properties: {\n       lockDuration: contains(s.properties, 'lockDuration') ? s.properties.lockDuration : 'PT1M'\n       maxDeliveryCount: contains(s.properties, 'maxDeliveryCount') ? s.properties.maxDeliveryCount : 10\n     }\n   }]\n   ```\n2. Add support for authorization rules\n3. Implement private endpoint configuration\n4. Add disaster recovery configuration\n5. Configure message capture settings\n6. Expose outputs for connection strings, primary/secondary keys, etc.",
+        "testStrategy": "1. Deploy to test environment with minimal configuration\n2. Verify namespace, queue, and topic creation\n3. Test authorization rules and access\n4. Validate subscription creation and configuration\n5. Test connection string output format",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Service Bus Namespace Bicep Module",
+            "description": "Develop the core Bicep module for creating Azure Service Bus namespaces with configurable SKU, capacity, and zone redundancy options.",
+            "dependencies": [],
+            "details": "Create a Bicep module that defines the Service Bus namespace resource with parameters for name, location, SKU (Basic, Standard, Premium), capacity, zone redundancy, and tags. Include support for private endpoints and network rules if applicable. Implement proper output variables for the namespace ID and endpoint.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement Queue Configuration Module",
+            "description": "Create a submodule for Service Bus queues with support for all queue properties and dead-letter configuration.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop a Bicep module for queue creation that supports parameters like lock duration, max size, TTL, duplicate detection, session support, and dead-letter settings. The module should be able to create multiple queues based on an array input and properly nest under the namespace resource. Include authorization rules specific to queues.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement Topic and Subscription Management",
+            "description": "Create modules for topics and their subscriptions with support for filtering rules and forwarding.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop Bicep modules for topics and subscriptions that support all configuration options including auto-delete, TTL, and forwarding. Implement subscription filtering rules (SQL filter, correlation filter) and dead-letter settings. Design the module to handle dynamic creation of multiple subscriptions under each topic using array inputs.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Implement Authorization Rules Management",
+            "description": "Create a module component for managing SAS authorization rules at namespace, queue, and topic levels.",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Develop the authorization rules component that can be applied at namespace, queue, or topic level. Support different rights combinations (Send, Listen, Manage) and handle the creation of multiple rules. Ensure proper nesting of resources and parameter validation for the different scopes of authorization.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Implement Connection String Outputs and Documentation",
+            "description": "Add secure handling of connection strings as outputs and create comprehensive documentation.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Implement secure output of connection strings and keys for the created resources. Create comprehensive documentation with examples for different scenarios: basic namespace, queues with authorization, topics with subscriptions, etc. Include parameter tables explaining all possible configuration options and their default values. Add validation decorators for all parameters.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Implement Shared APIM Integration",
+        "description": "Create the logic to integrate with a shared API Management instance, allowing projects to register their APIs under unique namespaces.",
+        "details": "1. Create apimIntegration.bicep with parameters:\n   ```bicep\n   param apimMode string = 'shared' // 'shared' or 'dedicated'\n   param sharedApimResourceId string = ''\n   param projectName string\n   param apiName string\n   param apiPath string\n   param apiVersion string = 'v1'\n   param apiSpecificationFormat string = 'openapi+json'\n   param apiSpecificationValue string\n   param productName string = ''\n   \n   resource sharedApim 'Microsoft.ApiManagement/service@2021-08-01' existing = if (apimMode == 'shared') {\n     name: split(sharedApimResourceId, '/')[8]\n     scope: resourceGroup(split(sharedApimResourceId, '/')[4])\n   }\n   \n   resource dedicatedApim 'Microsoft.ApiManagement/service@2021-08-01' = if (apimMode == 'dedicated') {\n     name: '${projectName}-apim'\n     location: resourceGroup().location\n     sku: {\n       name: 'Developer'\n       capacity: 1\n     }\n     properties: {\n       publisherEmail: 'admin@example.com'\n       publisherName: projectName\n     }\n   }\n   \n   resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {\n     name: apiName\n     parent: apimMode == 'shared' ? sharedApim : dedicatedApim\n     properties: {\n       displayName: '${projectName} API'\n       path: apimMode == 'shared' ? '${projectName}/${apiVersion}' : apiPath\n       protocols: ['https']\n       format: apiSpecificationFormat\n       value: apiSpecificationValue\n     }\n   }\n   \n   resource product 'Microsoft.ApiManagement/service/products@2021-08-01' = if (!empty(productName)) {\n     name: productName\n     parent: apimMode == 'shared' ? sharedApim : dedicatedApim\n     properties: {\n       displayName: productName\n       state: 'published'\n       subscriptionRequired: true\n     }\n   }\n   \n   resource apiProductLink 'Microsoft.ApiManagement/service/products/apis@2021-08-01' = if (!empty(productName)) {\n     name: apiName\n     parent: product\n   }\n   ```\n2. Add support for API policies (rate limiting, CORS, etc.)\n3. Implement API versioning strategy\n4. Add subscription key management\n5. Configure backend service integration\n6. Expose outputs for API URL, portal URL, etc.",
+        "testStrategy": "1. Deploy to test environment with existing shared APIM\n2. Verify API registration under project namespace\n3. Test API operations and policies\n4. Validate product association\n5. Test subscription key generation and usage",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design APIM Operational Mode Architecture",
+            "description": "Define the architecture for both shared and dedicated APIM operational modes, including resource group structures, naming conventions, and isolation patterns.",
+            "dependencies": [],
+            "details": "Create detailed architecture diagrams showing how APIs will be organized in both shared and dedicated modes. Document the decision criteria for when to use each mode. Define isolation boundaries between different projects sharing the same APIM instance. Establish naming conventions for APIs, products, and policies that ensure uniqueness across projects.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement API Registration Mechanism",
+            "description": "Develop a standardized process for registering APIs in the APIM instance that works across both shared and dedicated modes.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create templates for API definitions that include required metadata. Implement validation checks to ensure API paths don't conflict across projects in shared mode. Develop automation scripts for API registration that handle cross-resource group references. Include documentation on how to register APIs with proper versioning information.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Configure APIM Policy Framework",
+            "description": "Establish a hierarchical policy framework that allows for global, product-level, and API-level policies while maintaining isolation between projects.",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Define global policies that apply to all APIs. Create templates for product and API-level policies. Implement a mechanism to prevent policy conflicts between different projects. Develop a testing framework to validate policy behavior. Document the policy inheritance model and override capabilities.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Implement Product Association Strategy",
+            "description": "Design and implement a system for organizing APIs into products that maintains proper boundaries between different projects.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define product creation guidelines including naming conventions and metadata requirements. Implement access control mechanisms to ensure projects can only modify their own products. Create automation for associating APIs with products. Document the product lifecycle management process including creation, updates, and deprecation.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Develop API Versioning Strategy",
+            "description": "Establish a consistent approach to API versioning that works across both shared and dedicated APIM modes.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define version numbering scheme and path structure. Implement mechanisms for maintaining multiple API versions simultaneously. Create processes for deprecating and retiring old versions. Develop documentation templates that clearly communicate version differences to API consumers. Implement version-specific policy capabilities.",
+            "status": "pending"
+          },
+          {
+            "id": 6,
+            "title": "Implement Subscription Management System",
+            "description": "Design and implement a subscription management system that handles project-specific access control and usage tracking.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Develop subscription approval workflows for different project scenarios. Implement usage quotas and rate limiting appropriate for each project. Create reporting mechanisms to track API usage by project and subscription. Document the subscription lifecycle including creation, approval, renewal, and revocation processes. Implement notification systems for subscription-related events.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Implement Optional Modules Toggle System",
+        "description": "Create the system to enable/disable optional modules like Redis, CDN, and Front Door based on configuration flags.",
+        "details": "1. Update main.bicep to support optional modules:\n   ```bicep\n   // Optional module flags\n   var enableRedis = contains(config, 'enableRedis') ? config.enableRedis : false\n   var enableCdn = contains(config, 'enableCdn') ? config.enableCdn : false\n   var enableFrontDoor = contains(config, 'enableFrontDoor') ? config.enableFrontDoor : false\n   \n   // Redis Cache module\n   module redis './modules/redis.bicep' = if (enableRedis) {\n     name: '${projectName}-${environment}-redis-deployment'\n     params: {\n       redisCacheName: '${projectName}-${environment}-redis'\n       location: location\n       // Additional parameters from config\n     }\n   }\n   \n   // CDN module\n   module cdn './modules/cdn.bicep' = if (enableCdn) {\n     name: '${projectName}-${environment}-cdn-deployment'\n     params: {\n       cdnProfileName: '${projectName}-${environment}-cdn'\n       location: location\n       // Additional parameters from config\n     }\n   }\n   \n   // Front Door module\n   module frontDoor './modules/frontDoor.bicep' = if (enableFrontDoor) {\n     name: '${projectName}-${environment}-fd-deployment'\n     params: {\n       frontDoorName: '${projectName}-${environment}-fd'\n       // Additional parameters from config\n     }\n   }\n   ```\n2. Create skeleton implementations for optional modules:\n   - redis.bicep\n   - cdn.bicep\n   - frontDoor.bicep\n3. Implement conditional output handling for optional modules\n4. Add documentation for each optional module\n5. Create sample configurations for different scenarios",
+        "testStrategy": "1. Deploy with different combinations of enabled/disabled modules\n2. Verify resources are only created when enabled\n3. Test dependencies between optional and core modules\n4. Validate output handling for disabled modules\n5. Test configuration inheritance and overrides",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Configuration Flag System",
+            "description": "Create a robust configuration flag system to enable/disable optional modules",
+            "dependencies": [],
+            "details": "Design and implement a configuration flag system that allows users to toggle optional modules on/off. Create a standardized approach for defining module flags with sensible defaults. Ensure flags can be set via variables.tf with appropriate descriptions and validation. Test different flag combinations to verify proper behavior.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Develop Module Skeleton Templates",
+            "description": "Create standardized skeleton templates for optional modules with conditional creation logic",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop reusable module skeleton templates that incorporate conditional creation logic based on configuration flags. Implement count or for_each mechanisms to conditionally create resources. Ensure proper handling of module inputs when disabled. Create a consistent pattern for module organization that supports the toggle system.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Implement Conditional Output Management",
+            "description": "Design a system to handle outputs from optional modules that may or may not exist",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a mechanism to safely handle outputs from optional modules that may not be created. Implement conditional logic to provide default/empty values when modules are disabled. Ensure dependent modules can safely reference outputs regardless of whether optional modules are enabled. Test various scenarios to verify output handling works correctly.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Create Documentation and Examples",
+            "description": "Develop comprehensive documentation and examples for the Optional Modules Toggle System",
+            "dependencies": [
+              1,
+              2,
+              3
+            ],
+            "details": "Create detailed documentation explaining the Optional Modules Toggle System architecture and usage. Include examples demonstrating how to enable/disable modules, handle dependencies between optional modules, and properly reference conditional outputs. Document best practices for creating new optional modules. Create a test environment showcasing different configuration scenarios.",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Create GitHub Actions Deployment Pipeline",
+        "description": "Develop a reusable GitHub Actions workflow for deploying the Bicep infrastructure across multiple environments.",
+        "details": "1. Create .github/workflows/deploy-infrastructure.yml:\n   ```yaml\n   name: Deploy Infrastructure\n   \n   on:\n     workflow_dispatch:\n       inputs:\n         environment:\n           description: 'Environment to deploy (dev, qa, prod)'\n           required: true\n           default: 'dev'\n         configPath:\n           description: 'Path to bicep.config.json'\n           required: true\n           default: './config/bicep.config.json'\n   \n   jobs:\n     validate:\n       runs-on: ubuntu-latest\n       steps:\n         - uses: actions/checkout@v3\n         \n         - name: Setup Node.js\n           uses: actions/setup-node@v3\n           with:\n             node-version: '16'\n             \n         - name: Install dependencies\n           run: npm ci\n           \n         - name: Validate configuration\n           run: node ./scripts/validate-config.js ${{ github.event.inputs.configPath }} ${{ github.event.inputs.environment }}\n   \n     deploy:\n       needs: validate\n       runs-on: ubuntu-latest\n       steps:\n         - uses: actions/checkout@v3\n         \n         - name: Azure Login\n           uses: azure/login@v1\n           with:\n             client-id: ${{ secrets.AZURE_CLIENT_ID }}\n             tenant-id: ${{ secrets.AZURE_TENANT_ID }}\n             subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}\n         \n         - name: Deploy Bicep\n           uses: azure/arm-deploy@v1\n           with:\n             subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}\n             resourceGroupName: ${{ secrets.RESOURCE_GROUP }}\n             template: ./main.bicep\n             parameters: configPath=${{ github.event.inputs.configPath }} environment=${{ github.event.inputs.environment }}\n             deploymentName: ${{ format('{0}-{1}-{2}', github.repository_owner, github.event.repository.name, github.event.inputs.environment) }}\n   ```\n2. Create validate-config.js script for configuration validation\n3. Add support for what-if analysis before deployment\n4. Implement environment-specific variable substitution\n5. Add deployment output capture and storage\n6. Create teardown workflow with safety checks",
+        "testStrategy": "1. Test workflow with sample configuration\n2. Verify validation step catches configuration errors\n3. Test deployment to different environments\n4. Validate output capture and storage\n5. Test teardown workflow with safety checks",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Define GitHub Actions Workflow Structure",
+            "description": "Create the basic GitHub Actions workflow file structure with proper triggers, permissions, and job organization.",
+            "dependencies": [],
+            "details": "Create a .github/workflows directory and define the main workflow YAML file. Include appropriate triggers (push, pull request, manual), set required permissions for Azure deployments, and organize jobs with proper naming conventions. Define reusable workflow patterns and ensure proper checkout of repository code.",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Implement Configuration Validation Steps",
+            "description": "Add validation steps to verify Bicep templates and configuration files before deployment.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create validation jobs that run 'az bicep build' to check template syntax, implement linting for Bicep files, validate parameter files against schemas, and ensure all required parameters are provided. Add steps to verify Azure resource naming conventions and policy compliance before actual deployment.",
+            "status": "pending"
+          },
+          {
+            "id": 3,
+            "title": "Create What-If Analysis Integration",
+            "description": "Implement what-if analysis to preview changes before actual deployment.",
+            "dependencies": [
+              2
+            ],
+            "details": "Add a dedicated job that runs 'az deployment group what-if' to generate a preview of changes. Format and display the output in the GitHub Actions logs. Implement conditional logic to proceed with deployment only if what-if analysis shows acceptable changes. Consider adding approval gates for significant changes.",
+            "status": "pending"
+          },
+          {
+            "id": 4,
+            "title": "Configure Environment-Specific Deployment Handling",
+            "description": "Set up environment-specific configurations and deployment strategies for different environments.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create environment-specific parameter files and deployment configurations. Implement environment-based conditional deployment logic. Set up GitHub Environments with appropriate protection rules and approvals for production deployments. Configure environment-specific secrets and variables in GitHub repository settings.",
+            "status": "pending"
+          },
+          {
+            "id": 5,
+            "title": "Implement Output Management and Teardown Workflow",
+            "description": "Create mechanisms to capture deployment outputs and implement a safe teardown workflow.",
+            "dependencies": [
+              4
+            ],
+            "details": "Add steps to capture and store deployment outputs as artifacts or environment variables. Create a separate teardown workflow that safely removes resources in reverse dependency order. Implement safeguards to prevent accidental deletion of production resources. Add confirmation steps and environment locks for destructive operations.",
+            "status": "pending"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-19T14:52:26.384Z",
+      "updated": "2025-06-19T14:52:26.385Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

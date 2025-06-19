@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-19T15:57:28.481Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Define bicep.config.json Schema and Validation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the task of creating a bicep.config.json schema and validation system into detailed subtasks covering schema design, validation implementation, default templates, naming conventions, and documentation.",
+			"reasoning": "This task requires deep technical knowledge of JSON Schema, validation patterns, and infrastructure configuration. It's foundational to the entire project and requires careful design to ensure extensibility. The task involves both schema design and implementation of validation logic."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Develop main.bicep Orchestrator",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the development of the main.bicep orchestrator into detailed subtasks covering parameter definition, configuration parsing, conditional module loading, naming conventions, dependency management, and output handling.",
+			"reasoning": "This is a highly complex task as it's the central orchestration component that ties together all modules. It requires deep Bicep knowledge, understanding of resource dependencies, conditional deployment logic, and parameter handling. It's the backbone of the entire infrastructure deployment system."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement Core Module: appService.bicep",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the implementation of the App Service Bicep module into detailed subtasks covering basic resource creation, app settings configuration, deployment slot implementation, and identity/diagnostics setup.",
+			"reasoning": "This module has moderate complexity as it involves creating App Service resources with various configuration options. While not as complex as the orchestrator, it still requires handling multiple resource types, configuration options, and proper output exposure."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Implement Core Module: functionApp.bicep",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the implementation of the Function App Bicep module into detailed subtasks covering storage account setup, app insights integration, hosting plan configuration, and function app settings management.",
+			"reasoning": "This module is more complex than the App Service module as it requires coordinating multiple dependent resources (storage, app insights) and handling various hosting options. The configuration is more intricate with multiple connection strings and settings."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implement Core Module: keyVault.bicep",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the implementation of the Key Vault Bicep module into detailed subtasks covering vault creation, access policy configuration, secret management, and network/security settings.",
+			"reasoning": "Key Vault implementation involves security considerations and access management complexity. The module needs to handle access policies, secret creation, and security features, but the overall structure is relatively straightforward compared to some other modules."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Implement Core Module: sqlDatabase.bicep",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the implementation of the SQL Database Bicep module into detailed subtasks covering server creation, database configuration, firewall rules, authentication options, and connection string management.",
+			"reasoning": "SQL Database implementation involves multiple resources (server, database, firewall rules) and security considerations. The complexity comes from handling authentication options, firewall configurations, and ensuring proper connectivity while maintaining security."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Core Module: serviceBus.bicep",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the implementation of the Service Bus Bicep module into detailed subtasks covering namespace creation, queue configuration, topic/subscription management, authorization rules, and connection string handling.",
+			"reasoning": "Service Bus is one of the more complex modules due to the nested resource structure (namespaces, queues, topics, subscriptions). The complexity is increased by the need to handle dynamic creation of subscriptions under topics and managing authorization rules."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Implement Shared APIM Integration",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the implementation of the Shared APIM Integration into detailed subtasks covering shared/dedicated mode handling, API registration, policy configuration, product association, versioning strategy, and subscription management.",
+			"reasoning": "This task has high complexity due to the dual-mode operation (shared vs. dedicated) and cross-resource group references. It requires careful handling of API paths, policies, and products while maintaining proper isolation between projects sharing the same APIM instance."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement Optional Modules Toggle System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the implementation of the Optional Modules Toggle System into detailed subtasks covering configuration flag handling, module skeleton creation, conditional output management, and documentation/examples.",
+			"reasoning": "This task involves creating a flexible system for enabling/disabling optional infrastructure components. The complexity comes from ensuring proper conditional deployment, handling outputs from optional modules, and maintaining dependencies between optional and core modules."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Create GitHub Actions Deployment Pipeline",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the creation of the GitHub Actions Deployment Pipeline into detailed subtasks covering workflow definition, configuration validation, what-if analysis, environment-specific handling, output management, and teardown workflow.",
+			"reasoning": "Creating a robust CI/CD pipeline involves multiple technologies (GitHub Actions, Azure CLI, Bicep) and security considerations. The complexity comes from ensuring proper validation, environment handling, and creating a safe deployment and teardown process."
+		}
+	]
+}

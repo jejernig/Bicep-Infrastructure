@@ -1,0 +1,172 @@
+<context>
+# Overview  
+This project defines a **generic, reusable Bicep infrastructure-as-code framework** for deploying cloud infrastructure across multiple Azure-hosted SaaS products. It solves the problem of repetitive, one-off cloud setups by offering a centralized, configuration-driven approach. It is ideal for solo developers, small teams, and micro SaaS builders who want consistency, cost control, and rapid infrastructure deployment.  
+
+Its value lies in being **modular, scalable, and extensible** — deploy once, reuse everywhere. It minimizes overhead (especially for expensive resources like API Management) while staying flexible across projects like PhantomLine, YardDaddy, StillFrame, GrillDaddy, and others.
+
+# Core Features  
+**Modular Infrastructure Templates**  
+- Each Azure service (Function App, Key Vault, SQL, etc.) has its own Bicep module.  
+- Why: Keeps code clean, testable, and independently deployable.  
+- How: Modules receive input from a master config and expose outputs for downstream use.
+
+**Configuration-Driven via `bicep.config.json`**  
+- Allows a single input file to control entire environment provisioning.  
+- Why: Enables rapid cloning of environments with different settings.  
+- How: Main Bicep reads values and enables/disables modules accordingly.
+
+**Shared API Management Strategy**  
+- Supports using a centralized APIM instance across multiple SaaS products.  
+- Why: Saves $140+/month per app by avoiding redundant APIM resources.  
+- How: Projects register their APIs under a unique namespace (e.g., `/phantomline/v1`) into a shared APIM instance.
+
+**Optionalized Premium Features**  
+- Modules like Redis, CDN, and Front Door can be toggled on/off.  
+- Why: Keeps dev environments lean and reduces unnecessary costs.  
+- How: Flags in config drive module inclusion during deployment.
+
+# User Experience  
+**User Personas**  
+- Indie developers or small teams launching multiple Azure SaaS products  
+- DevOps engineers looking for a repeatable, auditable pattern  
+- Technical founders wanting to scale infra without scaling costs  
+
+**Key User Flows**  
+- Define project config via `bicep.config.json`  
+- Run deployment via GitHub Actions or Az CLI  
+- Infra is provisioned according to config, and reusable outputs are emitted  
+
+**UI/UX Considerations**  
+- Infra-only; UX is in how simple the configuration and outputs are  
+- Outputs designed to plug directly into pipelines or dashboards  
+</context>
+
+<PRD>
+# Technical Architecture  
+**System Components**  
+- Azure Bicep modules for App Service, Function App, Storage, Key Vault, SQL DB, Service Bus, APIM, CDN, Front Door  
+- `main.bicep` orchestrator  
+- `bicep.config.json` external configuration  
+
+**Data Models**  
+- JSON config schema defines all environment-level settings  
+- Each module defines input/output contracts  
+
+**APIs and Integrations**  
+- Uses Azure Resource Manager (ARM) via Bicep  
+- Optionally connects to shared APIM instance via `resourceId`  
+- GitHub Actions or Azure Dev CLI pipelines  
+
+**Infrastructure Requirements**  
+- Azure Subscription  
+- Shared Resource Group for global APIM (e.g., `teamteddy-global-rg`)  
+- Permissions to deploy Bicep modules and manage identities  
+
+# Development Roadmap  
+
+**Phase 1: MVP Requirements**  
+- `main.bicep` orchestration script  
+- Core modules:  
+  - `appService.bicep`  
+  - `functionApp.bicep`  
+  - `keyVault.bicep`  
+  - `sqlDatabase.bicep`  
+  - `serviceBus.bicep`  
+- JSON config parsing logic  
+- Toggle-based deployment (e.g., `enableRedis`)  
+- Shared APIM integration (registration only, not provisioning)  
+
+**Phase 2: Future Enhancements**  
+- Module for App Config and Feature Flags  
+- Multi-region deployment support  
+- Dynamic APIM policy templates  
+- Key Vault Certificate integration  
+- Azure Monitor and Logging module  
+- Tag auditing and reporting  
+
+# Logical Dependency Chain  
+1. Define `bicep.config.json` schema and validation tooling  
+2. Build `main.bicep` to parse config and coordinate modules  
+3. Start with core modules (Function App, App Service, Key Vault, SQL)  
+4. Add support for optional modules (Redis, CDN, Front Door)  
+5. Integrate shared APIM logic with route prefix and product handling  
+6. Emit consistent outputs (e.g., URLs, keys, connection strings)  
+7. Test end-to-end with one real project (e.g., PhantomLine)  
+8. Package reusable GitHub Action pipeline logic  
+9. Finalize documentation, tagging, and teardown safeguards  
+
+# Risks and Mitigations  
+**Risk: Complex APIM Integration**  
+- Mitigation: Separate provisioning from API registration; require manual APIM resource link  
+
+**Risk: Over-configuration in early stages**  
+- Mitigation: Establish strict JSON schema and defaults to simplify onboarding  
+
+**Risk: Resource naming collisions or region constraints**  
+- Mitigation: Prefix all names with `${projectPrefix}-${env}`; validate regions  
+
+**Risk: Cloud cost mismanagement**  
+- Mitigation: Disable premium modules in dev; highlight APIM usage mode clearly in config  
+
+# Extra Tasks for Maximum Value  
+
+**1. JSON Schema Validation for `bicep.config.json`**  
+- Prevent misconfigured environments with a Node.js or PowerShell validator  
+
+**2. Multi-Environment Deploy Loop**  
+- Allow one config to deploy `dev`, `qa`, `prod` in sequence  
+
+**3. GitHub Action Generator**  
+- Auto-generate `deploy.yml` pipelines tailored per project  
+
+**4. Teardown Script with Guardrails**  
+- Safe `delete-resources.ps1` with "Are you sure?" confirmation  
+
+**5. Publish Modules to Private/Public Bicep Registry**  
+- Enable `module teamteddy.sqlDatabase` imports in other projects  
+
+**6. Cost Projection Estimator**  
+- Output estimated cost per module or environment  
+
+**7. Role Assignment Automation**  
+- Automate MSI access to Key Vault, Storage, SQL, etc.  
+
+**8. Tag Enforcement + Audit Script**  
+- Prevent untagged resources; generate reports for compliance  
+
+**9. Azure Policy Assignment Module**  
+- Enforce naming, location, SKU restrictions via ARM policies  
+
+**10. Local Test Runner / Dry-Run Validator**  
+- Perform `what-if` analysis and log output to file  
+
+**11. VS Code Snippets for Modules**  
+- Shortcut snippets like `bicep:kv` to inject module templates  
+
+**12. Global Resource Naming Convention**  
+- Enforce consistent, collision-safe names like `grilldaddy-dev-eastus-sql`  
+
+**13. Infra Docs Generator (`infra-overview.md`)**  
+- Auto-write markdown docs with all deployed resources and outputs  
+
+**14. Terraform Compatibility Layer (Advanced)**  
+- Allow hybrid use with Terraform by bridging outputs or config  
+
+# Appendix  
+
+**Research Findings**  
+- Azure APIM pricing confirms cost floor of $140/mo+  
+- Shared APIM routing patterns (e.g., `/project/v1/`) supported via named API imports and policies  
+- Redis, CDN, Front Door add ~20–30% cost increase in production  
+
+**Technical Specs**  
+- Bicep v0.22+  
+- Azure CLI 2.58+  
+- GitHub Actions with OIDC or Service Principal  
+- Uses `resourceId()` for linking shared services  
+- Config-driven with feature toggles:  
+  - `"enableApim": true`  
+  - `"apimMode": "shared"`  
+  - `"sharedApimResourceId"` to link to a global APIM  
+
+</PRD>
