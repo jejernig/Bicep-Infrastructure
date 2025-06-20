@@ -8,6 +8,8 @@ The Bicep Infrastructure project provides a structured approach to deploying Azu
 
 - A configuration system with JSON schema validation
 - Bicep modules for various Azure resources
+- GitHub Actions workflows for deployment and teardown
+- Environment-specific configuration management
 - Deployment scripts and utilities
 - Documentation and best practices
 
@@ -31,6 +33,89 @@ The Bicep Infrastructure project provides a structured approach to deploying Azu
    ```bash
    npm install
    ```
+
+## Using as a Template Repository
+
+This repository is designed to be used as a template for all your Bicep infrastructure projects. Here's how to use it:
+
+### For New Projects
+
+1. Click the "Use this template" button in GitHub to create a new repository based on this template
+2. Clone your new repository
+3. Configure environment-specific settings in `config/environments/` directory
+4. Set up GitHub Environments and secrets (see [GitHub Environments Setup](./docs/github-environments-setup.md))
+5. Customize Bicep templates as needed for your project
+6. Deploy using the provided GitHub Actions workflows
+
+For detailed instructions, see the [Template Repository Setup Guide](./docs/template-repository-setup.md).
+
+### For Existing Projects
+
+1. Copy the following directories to your project:
+   - `.github/workflows/` - Contains deployment and teardown workflows
+   - `config/environments/` - For environment-specific configurations
+   - `docs/` - Documentation including GitHub Environments setup
+
+2. Set up GitHub Environments and secrets as described in the documentation
+
+3. Create environment-specific configuration files that conform to the provided schema (`config/environments/environment.schema.json`)
+
+For detailed instructions, see the [Template Repository Setup Guide](./docs/template-repository-setup.md).
+
+### Required GitHub Secrets
+
+For each project using these workflows, you need to set up the following secrets:
+
+- `AZURE_CLIENT_ID` - Service Principal ID for Azure authentication
+- `AZURE_TENANT_ID` - Azure Tenant ID
+- `AZURE_SUBSCRIPTION_ID` - Azure Subscription ID
+- `RESOURCE_GROUP_DEV` - Resource group name for dev environment
+- `RESOURCE_GROUP_QA` - Resource group name for QA environment
+- `RESOURCE_GROUP_PROD` - Resource group name for production environment
+
+## GitHub Actions Workflows
+
+This template includes two main GitHub Actions workflows for infrastructure management:
+
+### Deploy Infrastructure Workflow
+
+**File:** `.github/workflows/deploy-infrastructure.yml`
+
+This workflow handles the deployment of Bicep infrastructure to Azure. Key features include:
+
+- Environment-specific configuration loading from `config/environments/{environment}.json`
+- Parameter preparation based on environment settings
+- Validation of Bicep templates before deployment
+- What-If analysis to preview changes
+- Deployment with detailed output capturing
+- Generation of deployment summaries and reports
+- Storage of deployment history for auditing
+
+**Usage:**
+
+1. Navigate to Actions > Deploy Infrastructure
+2. Select the environment (dev, qa, prod)
+3. Provide an optional configuration path if needed
+4. Run the workflow
+
+### Teardown Infrastructure Workflow
+
+**File:** `.github/workflows/teardown-infrastructure.yml`
+
+This workflow safely tears down infrastructure in a specific environment. Key features include:
+
+- Confirmation validation to prevent accidental deletions
+- Additional protection for production environments
+- Resource deletion in the correct dependency order
+- Detailed teardown reporting
+- History tracking of all teardown operations
+
+**Usage:**
+
+1. Navigate to Actions > Teardown Infrastructure
+2. Select the environment (dev, qa, prod)
+3. Confirm by typing the environment name again
+4. Run the workflow
 
 ## Configuration System
 

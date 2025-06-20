@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Environment Configuration Schema",
+  "description": "Schema for environment-specific configuration files used in Bicep deployments",
+  "type": "object",
+  "required": ["environment", "deploymentSettings", "approvalRequirements"],
+  "properties": {
+    "environment": {
+      "type": "string",
+      "description": "Environment identifier (dev, qa, prod)",
+      "enum": ["dev", "qa", "prod"]
+    },
+    "deploymentSettings": {
+      "type": "object",
+      "description": "Settings that control deployment behavior",
+      "required": ["enableResourceLocks", "enableDiagnostics", "enableAutomatedBackups", "resourceTags"],
+      "properties": {
+        "enableResourceLocks": {
+          "type": "boolean",
+          "description": "Whether to enable Azure resource locks to prevent accidental deletion"
+        },
+        "enableDiagnostics": {
+          "type": "boolean",
+          "description": "Whether to enable diagnostic settings for resources"
+        },
+        "enableAutomatedBackups": {
+          "type": "boolean",
+          "description": "Whether to enable automated backup policies"
+        },
+        "resourceTags": {
+          "type": "object",
+          "description": "Tags to apply to all deployed resources",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "approvalRequirements": {
+      "type": "object",
+      "description": "Requirements for deployment approvals",
+      "required": ["requiredApprovers", "timeoutMinutes"],
+      "properties": {
+        "requiredApprovers": {
+          "type": "integer",
+          "description": "Number of required approvers for deployments",
+          "minimum": 0
+        },
+        "timeoutMinutes": {
+          "type": "integer",
+          "description": "Timeout in minutes for approval process",
+          "minimum": 0
+        }
+      }
+    },
+    "alertSettings": {
+      "type": "object",
+      "description": "Settings for alerts and notifications",
+      "properties": {
+        "notificationEmails": {
+          "type": "array",
+          "description": "Email addresses for alert notifications",
+          "items": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "alertThresholds": {
+          "type": "object",
+          "description": "Threshold values for different alert types",
+          "properties": {
+            "cpuThreshold": {
+              "type": "integer",
+              "description": "CPU usage threshold percentage",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "memoryThreshold": {
+              "type": "integer",
+              "description": "Memory usage threshold percentage",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "storageThreshold": {
+              "type": "integer",
+              "description": "Storage usage threshold percentage",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
