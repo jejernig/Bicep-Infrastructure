@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "projectName": "users",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "development",
+    "owner": "User Management Team",
+    "costCenter": "12345"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableKeyVault": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "operationalMode": "shared",
+      "sharedApimResourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/central-apis-rg/providers/Microsoft.ApiManagement/service/central-apim",
+      "products": [
+        {
+          "name": "users-internal",
+          "displayName": "User Management Internal APIs",
+          "description": "APIs for internal user management operations",
+          "state": "published",
+          "subscriptionSettings": {
+            "subscriptionRequired": true,
+            "approvalRequired": true,
+            "subscriptionsLimit": 5
+          }
+        }
+      ],
+      "apis": [
+        {
+          "name": "users-api-v1",
+          "displayName": "Users API v1",
+          "path": "users",
+          "version": "v1",
+          "versioningScheme": "path",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/users-v1.json",
+          "productName": "users-internal",
+          "policy": {
+            "lifecycleStage": "deprecated",
+            "endOfLifeDate": "2025-12-31",
+            "migrationDocUrl": "https://developer.example.com/users-api-migration",
+            "value": "<policies><inbound><base /><set-header name=\"Deprecation\" exists-action=\"override\"><value>true</value></set-header></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        },
+        {
+          "name": "users-api-v2",
+          "displayName": "Users API v2",
+          "path": "users",
+          "version": "v2",
+          "versioningScheme": "path",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/users-v2.json",
+          "productName": "users-internal",
+          "policy": {
+            "lifecycleStage": "current",
+            "value": "<policies><inbound><base /><rate-limit calls=\"10\" renewal-period=\"60\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        },
+        {
+          "name": "users-api-v3",
+          "displayName": "Users API v3 (Preview)",
+          "path": "users",
+          "version": "v3",
+          "versioningScheme": "path",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/users-v3.json",
+          "productName": "users-internal",
+          "policy": {
+            "lifecycleStage": "preview",
+            "value": "<policies><inbound><base /><rate-limit calls=\"5\" renewal-period=\"60\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        },
+        {
+          "name": "profiles-api",
+          "displayName": "User Profiles API",
+          "path": "profiles",
+          "version": "v1",
+          "versioningScheme": "header",
+          "versionHeaderName": "X-API-Version",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/profiles-v1.json",
+          "productName": "users-internal"
+        },
+        {
+          "name": "preferences-api",
+          "displayName": "User Preferences API",
+          "path": "preferences",
+          "version": "v1",
+          "versioningScheme": "query",
+          "versionQueryName": "version",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/preferences-v1.json",
+          "productName": "users-internal"
+        }
+      ]
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "Y1"
+    },
+    "keyVault": {
+      "sku": "standard"
+    }
+  }
+}

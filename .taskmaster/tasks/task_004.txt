@@ -1,0 +1,99 @@
+# Task ID: 4
+# Title: Implement Core Module: functionApp.bicep
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create the Function App Bicep module with storage account, app insights, and necessary configurations.
+# Details:
+1. Create functionApp.bicep with parameters:
+   ```bicep
+   param functionAppName string
+   param location string = resourceGroup().location
+   param storageAccountName string
+   param appInsightsName string
+   param runtime string = 'dotnet'
+   param sku string = 'Y1' // Consumption plan
+   
+   resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
+     name: storageAccountName
+     location: location
+     sku: {
+       name: 'Standard_LRS'
+     }
+     kind: 'StorageV2'
+   }
+   
+   resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+     name: appInsightsName
+     location: location
+     kind: 'web'
+     properties: {
+       Application_Type: 'web'
+     }
+   }
+   
+   resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
+     name: '${functionAppName}-plan'
+     location: location
+     sku: {
+       name: sku
+     }
+     properties: {}
+   }
+   
+   resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
+     name: functionAppName
+     location: location
+     kind: 'functionapp'
+     properties: {
+       serverFarmId: hostingPlan.id
+       siteConfig: {
+         appSettings: [
+           { name: 'AzureWebJobsStorage', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }
+           { name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING', value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}' }
+           { name: 'APPINSIGHTS_INSTRUMENTATIONKEY', value: appInsights.properties.InstrumentationKey }
+           { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
+           { name: 'FUNCTIONS_WORKER_RUNTIME', value: runtime }
+         ]
+       }
+     }
+   }
+   ```
+2. Add support for different hosting plans (consumption, premium, dedicated)
+3. Configure CORS settings
+4. Add custom domain support
+5. Implement health check endpoint configuration
+6. Expose outputs for function URL, storage connection string, etc.
+
+# Test Strategy:
+1. Deploy to test environment with minimal configuration
+2. Verify function app can be deployed to with sample code
+3. Test with different runtime stacks and hosting plans
+4. Validate storage account and app insights integration
+5. Test custom domain configuration
+
+# Subtasks:
+## 1. Implement Storage Account Resource [pending]
+### Dependencies: None
+### Description: Create the storage account resource required for Function App operation
+### Details:
+Implement the storage account resource in the Bicep module with appropriate parameters for name, SKU, kind, and access tier. Include configuration for blob, queue, and table services. Ensure proper naming convention compatibility with Function Apps and implement conditional deployment based on whether a custom storage account is provided.
+
+## 2. Configure Application Insights Integration [pending]
+### Dependencies: None
+### Description: Set up Application Insights integration for Function App monitoring
+### Details:
+Implement Application Insights resource or reference to existing instance. Configure sampling rate, retention policies, and workspace connection. Create output variables for instrumentation key and connection string. Ensure conditional deployment based on monitoring requirements parameter.
+
+## 3. Implement Hosting Plan Configuration [pending]
+### Dependencies: None
+### Description: Create the hosting plan resource with support for multiple hosting models
+### Details:
+Implement App Service Plan resource with support for Consumption, Premium, and Dedicated hosting models. Configure auto-scaling settings, instance counts, and SKU selection. Include parameters for OS preference (Windows/Linux) and implement reserved instances option for production environments.
+
+## 4. Configure Function App Settings and Deployment [pending]
+### Dependencies: 4.1, 4.2, 4.3
+### Description: Implement the Function App resource with all required settings and connections
+### Details:
+Create the Function App resource with proper references to storage account, app insights, and hosting plan. Implement app settings including runtime stack, version, and environment variables. Configure connection strings, identity settings (MSI), and deployment options. Implement output variables for Function App endpoints and identity information.
+

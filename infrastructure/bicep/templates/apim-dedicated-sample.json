@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "projectName": "apiproject",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "development",
+    "owner": "API Team",
+    "costCenter": "12345"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableKeyVault": true,
+    "enableStorageAccount": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "operationalMode": "dedicated",
+      "sku": "Developer",
+      "capacity": 1,
+      "publisherEmail": "admin@example.com",
+      "publisherName": "API Project Team",
+      "apis": [
+        {
+          "name": "users-api",
+          "path": "users",
+          "version": "v1",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/users-api-spec.json",
+          "productName": "internal",
+          "policies": {
+            "cors": {
+              "allowedOrigins": ["https://portal.example.com", "https://admin.example.com"],
+              "allowedMethods": ["GET", "POST", "PUT", "DELETE"],
+              "allowedHeaders": ["Content-Type", "Authorization"]
+            },
+            "rateLimit": {
+              "callsPerSecond": 10,
+              "renewalPeriod": 60,
+              "counter": "users-api"
+            }
+          }
+        },
+        {
+          "name": "products-api",
+          "path": "products",
+          "version": "v1",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/products-api-spec.json",
+          "productName": "public",
+          "policies": {
+            "cors": {
+              "allowedOrigins": ["*"],
+              "allowedMethods": ["GET"],
+              "allowedHeaders": ["Content-Type"]
+            },
+            "rateLimit": {
+              "callsPerSecond": 5,
+              "renewalPeriod": 60,
+              "counter": "products-api"
+            }
+          }
+        }
+      ]
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "Y1"
+    },
+    "keyVault": {
+      "sku": "standard"
+    },
+    "storageAccount": {
+      "sku": "Standard_LRS",
+      "kind": "StorageV2"
+    }
+  }
+}

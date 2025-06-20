@@ -1,0 +1,83 @@
+# Task ID: 9
+# Title: Implement Optional Modules Toggle System
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create the system to enable/disable optional modules like Redis, CDN, and Front Door based on configuration flags.
+# Details:
+1. Update main.bicep to support optional modules:
+   ```bicep
+   // Optional module flags
+   var enableRedis = contains(config, 'enableRedis') ? config.enableRedis : false
+   var enableCdn = contains(config, 'enableCdn') ? config.enableCdn : false
+   var enableFrontDoor = contains(config, 'enableFrontDoor') ? config.enableFrontDoor : false
+   
+   // Redis Cache module
+   module redis './modules/redis.bicep' = if (enableRedis) {
+     name: '${projectName}-${environment}-redis-deployment'
+     params: {
+       redisCacheName: '${projectName}-${environment}-redis'
+       location: location
+       // Additional parameters from config
+     }
+   }
+   
+   // CDN module
+   module cdn './modules/cdn.bicep' = if (enableCdn) {
+     name: '${projectName}-${environment}-cdn-deployment'
+     params: {
+       cdnProfileName: '${projectName}-${environment}-cdn'
+       location: location
+       // Additional parameters from config
+     }
+   }
+   
+   // Front Door module
+   module frontDoor './modules/frontDoor.bicep' = if (enableFrontDoor) {
+     name: '${projectName}-${environment}-fd-deployment'
+     params: {
+       frontDoorName: '${projectName}-${environment}-fd'
+       // Additional parameters from config
+     }
+   }
+   ```
+2. Create skeleton implementations for optional modules:
+   - redis.bicep
+   - cdn.bicep
+   - frontDoor.bicep
+3. Implement conditional output handling for optional modules
+4. Add documentation for each optional module
+5. Create sample configurations for different scenarios
+
+# Test Strategy:
+1. Deploy with different combinations of enabled/disabled modules
+2. Verify resources are only created when enabled
+3. Test dependencies between optional and core modules
+4. Validate output handling for disabled modules
+5. Test configuration inheritance and overrides
+
+# Subtasks:
+## 1. Implement Configuration Flag System [pending]
+### Dependencies: None
+### Description: Create a robust configuration flag system to enable/disable optional modules
+### Details:
+Design and implement a configuration flag system that allows users to toggle optional modules on/off. Create a standardized approach for defining module flags with sensible defaults. Ensure flags can be set via variables.tf with appropriate descriptions and validation. Test different flag combinations to verify proper behavior.
+
+## 2. Develop Module Skeleton Templates [pending]
+### Dependencies: 9.1
+### Description: Create standardized skeleton templates for optional modules with conditional creation logic
+### Details:
+Develop reusable module skeleton templates that incorporate conditional creation logic based on configuration flags. Implement count or for_each mechanisms to conditionally create resources. Ensure proper handling of module inputs when disabled. Create a consistent pattern for module organization that supports the toggle system.
+
+## 3. Implement Conditional Output Management [pending]
+### Dependencies: 9.2
+### Description: Design a system to handle outputs from optional modules that may or may not exist
+### Details:
+Create a mechanism to safely handle outputs from optional modules that may not be created. Implement conditional logic to provide default/empty values when modules are disabled. Ensure dependent modules can safely reference outputs regardless of whether optional modules are enabled. Test various scenarios to verify output handling works correctly.
+
+## 4. Create Documentation and Examples [pending]
+### Dependencies: 9.1, 9.2, 9.3
+### Description: Develop comprehensive documentation and examples for the Optional Modules Toggle System
+### Details:
+Create detailed documentation explaining the Optional Modules Toggle System architecture and usage. Include examples demonstrating how to enable/disable modules, handle dependencies between optional modules, and properly reference conditional outputs. Document best practices for creating new optional modules. Create a test environment showcasing different configuration scenarios.
+

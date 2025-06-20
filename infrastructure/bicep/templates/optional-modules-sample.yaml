@@ -1,0 +1,61 @@
+# Sample configuration for optional modules (Redis, CDN, Front Door)
+# This file demonstrates how to enable and configure the optional modules
+
+# Project metadata
+metadata:
+  projectName: myapp
+  environment: prod
+  location: eastus
+
+# Resource tags
+tags:
+  environment: production
+  managedBy: bicep
+
+# Feature toggles - Enable/disable optional modules
+featureToggles:
+  enableRedisCache: true
+  enableCdn: true
+  enableFrontDoor: true
+
+# Module configurations
+moduleConfigurations:
+  # Redis Cache configuration
+  redisCache:
+    sku: Standard
+    family: C
+    capacity: 1
+    enableNonSslPort: false
+  
+  # CDN configuration
+  cdn:
+    sku: Standard_Microsoft
+    originUrl: myapp.azurewebsites.net  # Replace with your origin URL
+    originHostHeader: myapp.azurewebsites.net
+    isHttpAllowed: false
+    isHttpsAllowed: true
+    queryStringCachingBehavior: IgnoreQueryString
+    optimizationType: GeneralWebDelivery
+  
+  # Front Door configuration
+  frontDoor:
+    backendHostName: myapp.azurewebsites.net  # Replace with your backend hostname
+    backendHostHeader: myapp.azurewebsites.net
+    backendHttpPort: 80
+    backendHttpsPort: 443
+    path: '/*'
+    acceptedProtocols: HttpsOnly
+    routeType: Forwarding
+    enableCaching: true
+    # Optional custom domain configuration
+    # customDomainName: myapp-frontend
+    # customDomainHostName: myapp.contoso.com
+    # keyVaultCertificateId: /subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.KeyVault/vaults/{vault-name}/secrets/{certificate-name}
+
+# Bicep settings (optional)
+bicepSettings:
+  linter:
+    enabled: true
+    rules:
+      no-unused-params: warning
+      no-unused-vars: warning

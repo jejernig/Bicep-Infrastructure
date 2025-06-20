@@ -1,0 +1,117 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {},
+  "resources": [],
+  "outputs": {},
+  "sqlDatabase": {
+    "enabled": true,
+    "serverName": "sql-server-name",
+    "databaseName": "sql-database-name",
+    "administratorLogin": "sqlAdmin",
+    "administratorLoginPassword": "P@ssw0rd1234!",
+    "systemAssignedIdentity": true,
+    "userAssignedIdentities": {
+      "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identity-name}": {}
+    },
+    "azureADAdmin": {
+      "login": "aad-admin-name",
+      "sid": "aad-admin-object-id",
+      "principalType": "User"
+    },
+    "azureADOnlyAuthentication": false,
+    "databaseSku": {
+      "name": "Standard",
+      "tier": "Standard",
+      "capacity": 10
+    },
+    "collation": "SQL_Latin1_General_CP1_CI_AS",
+    "maxSizeBytes": 5368709120,
+    "zoneRedundant": false,
+    "readScale": "Disabled",
+    "licenseType": "LicenseIncluded",
+    "highAvailabilityReplicaCount": 0,
+    "requestedBackupStorageRedundancy": "Geo",
+    "allowAzureServices": true,
+    "firewallRules": [
+      {
+        "name": "AllowedIP1",
+        "startIpAddress": "203.0.113.0",
+        "endIpAddress": "203.0.113.255"
+      },
+      {
+        "name": "AllowedIP2",
+        "startIpAddress": "198.51.100.0",
+        "endIpAddress": "198.51.100.255"
+      }
+    ],
+    "virtualNetworkRules": [
+      {
+        "subnetId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/virtualNetworks/{vnet-name}/subnets/{subnet-name}",
+        "ignoreMissingVnetServiceEndpoint": false
+      }
+    ],
+    "privateEndpoint": {
+      "name": "sql-server-pe",
+      "subnetId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/virtualNetworks/{vnet-name}/subnets/{subnet-name}",
+      "privateDnsZoneId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/privateDnsZones/privatelink.database.windows.net"
+    },
+    "auditing": {
+      "enabled": true,
+      "retentionDays": 90,
+      "storageAccountId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account-name}",
+      "workspaceId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.OperationalInsights/workspaces/{workspace-name}",
+      "eventHubAuthorizationRuleId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.EventHub/namespaces/{eventhub-namespace}/authorizationRules/RootManageSharedAccessKey",
+      "eventHubName": "sql-audit-hub"
+    },
+    "threatProtection": {
+      "enabled": true,
+      "emailAddresses": [
+        "security@contoso.com",
+        "dbadmin@contoso.com"
+      ],
+      "emailAccountAdmins": true,
+      "storageAccountId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Storage/storageAccounts/{storage-account-name}",
+      "retentionDays": 90,
+      "disabledAlerts": [
+        "Sql_Injection",
+        "Unsafe_Action"
+      ]
+    },
+    "transparentDataEncryption": {
+      "enabled": true,
+      "keyType": "ServiceManaged"
+    },
+    "backupPolicy": {
+      "longTermRetentionPolicy": {
+        "weeklyRetention": "P1M",
+        "monthlyRetention": "P1Y",
+        "yearlyRetention": "P5Y",
+        "weekOfYear": 1
+      },
+      "shortTermRetentionPolicy": {
+        "retentionDays": 14,
+        "diffBackupIntervalInHours": 24
+      }
+    },
+    "geoReplication": {
+      "secondaryServerName": "sql-server-dr",
+      "secondaryDatabaseName": "sql-database-dr",
+      "secondaryLocation": "eastus2",
+      "secondarySku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": 10
+      },
+      "readOnlyEndpointFailoverPolicy": true
+    },
+    "connectionString": {
+      "keyVaultName": "kv-sql-secrets",
+      "secretName": "sql-connection-string",
+      "useManagedIdentity": true,
+      "type": "ADO.NET",
+      "outputConnectionString": false
+    }
+  }
+}

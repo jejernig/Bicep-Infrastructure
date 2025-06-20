@@ -1,0 +1,202 @@
+{
+  "$schema": "../bicep.config.schema.json",
+  "metadata": {
+    "projectName": "fullstack",
+    "environment": "staging",
+    "location": "westus2"
+  },
+  "tags": {
+    "environment": "staging",
+    "project": "FullStackEnterprise",
+    "owner": "Enterprise Architecture Team",
+    "costCenter": "78901",
+    "criticality": "high",
+    "dataClassification": "confidential",
+    "compliance": "hipaa,pci"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableSignalR": true,
+    "enableRedisCache": true,
+    "enableKeyVault": true,
+    "enableOpenAI": true,
+    "enableContainerRegistry": true,
+    "enableStorageAccount": true,
+    "enableContainerInstance": true,
+    "enableSqlDatabase": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "sku": "Premium",
+      "capacity": 2,
+      "publisherEmail": "enterprise@example.com",
+      "publisherName": "Enterprise Architecture"
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "P1V2",
+      "appSettings": [
+        {
+          "name": "FUNCTIONS_WORKER_RUNTIME",
+          "value": "dotnet"
+        },
+        {
+          "name": "FUNCTIONS_EXTENSION_VERSION",
+          "value": "~4"
+        },
+        {
+          "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+          "value": "${appInsights.outputs.instrumentationKey}"
+        },
+        {
+          "name": "AzureWebJobsStorage",
+          "value": "${storageAccount.outputs.connectionString}"
+        },
+        {
+          "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+          "value": "${storageAccount.outputs.connectionString}"
+        },
+        {
+          "name": "WEBSITE_CONTENTSHARE",
+          "value": "function-app-content"
+        }
+      ]
+    },
+    "signalR": {
+      "sku": "Standard",
+      "capacity": 2,
+      "serviceMode": "Default"
+    },
+    "redisCache": {
+      "sku": "Premium",
+      "capacity": 2,
+      "enableNonSslPort": false
+    },
+    "keyVault": {
+      "sku": "premium",
+      "enabledForDeployment": true,
+      "enabledForTemplateDeployment": true,
+      "enabledForDiskEncryption": true,
+      "enablePurgeProtection": true,
+      "softDeleteRetentionInDays": 90
+    },
+    "openAI": {
+      "sku": "S0",
+      "deployments": [
+        {
+          "name": "gpt-35",
+          "model": "gpt-35-turbo",
+          "version": "0613",
+          "capacity": 2
+        },
+        {
+          "name": "gpt-4",
+          "model": "gpt-4",
+          "version": "0613",
+          "capacity": 1
+        }
+      ]
+    },
+    "containerRegistry": {
+      "sku": "Premium",
+      "adminUserEnabled": true
+    },
+    "storageAccount": {
+      "sku": "Standard_ZRS",
+      "kind": "StorageV2",
+      "accessTier": "Hot",
+      "fileShares": [
+        {
+          "name": "app-data",
+          "quota": 200
+        },
+        {
+          "name": "app-logs",
+          "quota": 100
+        },
+        {
+          "name": "app-backups",
+          "quota": 500
+        }
+      ]
+    },
+    "containerInstance": {
+      "image": "fullstackacr.azurecr.io/enterprise-analytics:latest",
+      "port": 8080,
+      "cpuCores": 4,
+      "memoryInGb": 8,
+      "environmentVariables": [
+        {
+          "name": "ENVIRONMENT",
+          "value": "staging"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info"
+        },
+        {
+          "name": "DATABASE_CONNECTION",
+          "secureValue": "${keyVault.outputs.sqlConnectionString}"
+        },
+        {
+          "name": "API_KEY",
+          "secureValue": "${keyVault.outputs.apiKey}"
+        }
+      ],
+      "volumeMounts": [
+        {
+          "name": "app-data",
+          "mountPath": "/data",
+          "shareName": "app-data"
+        },
+        {
+          "name": "app-logs",
+          "mountPath": "/logs",
+          "shareName": "app-logs"
+        },
+        {
+          "name": "app-backups",
+          "mountPath": "/backups",
+          "shareName": "app-backups"
+        }
+      ]
+    },
+    "sqlDatabase": {
+      "administratorLogin": "enterprise_admin",
+      "databaseSku": {
+        "name": "P2",
+        "tier": "Premium"
+      },
+      "allowAzureIPs": true,
+      "firewallRules": [
+        {
+          "name": "AllowDevTeam",
+          "startIpAddress": "203.0.113.0",
+          "endIpAddress": "203.0.113.255"
+        },
+        {
+          "name": "AllowOpsTeam",
+          "startIpAddress": "198.51.100.0",
+          "endIpAddress": "198.51.100.255"
+        }
+      ]
+    }
+  },
+  "bicepSettings": {
+    "linterEnabled": true,
+    "linterRules": {
+      "no-unused-params": "Error",
+      "no-unused-vars": "Error",
+      "prefer-interpolation": "Error",
+      "secure-parameter-default": "Error",
+      "no-hardcoded-env-urls": "Error",
+      "prefer-unquoted-property-names": "Warning",
+      "secure-secrets-in-params": "Error"
+    },
+    "formatting": {
+      "indentSize": 2,
+      "insertFinalNewline": true
+    }
+  }
+}

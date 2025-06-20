@@ -1,0 +1,69 @@
+# Task ID: 1
+# Title: Define bicep.config.json Schema and Validation
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Create the JSON schema for bicep.config.json that will drive the entire infrastructure deployment, along with validation tooling to ensure configuration correctness.
+# Details:
+1. Design a comprehensive JSON schema that includes:
+   - Project metadata (name, environment, region)
+   - Feature toggles for optional modules (enableRedis, enableCdn, etc.)
+   - APIM configuration (apimMode: 'shared'|'dedicated', sharedApimResourceId)
+   - Module-specific configurations
+2. Implement validation using JSON Schema:
+   ```javascript
+   const Ajv = require('ajv');
+   const ajv = new Ajv();
+   const schema = require('./bicep.config.schema.json');
+   const validate = ajv.compile(schema);
+   
+   function validateConfig(config) {
+     const valid = validate(config);
+     if (!valid) {
+       throw new Error(`Invalid configuration: ${JSON.stringify(validate.errors)}`);
+     }
+     return config;
+   }
+   ```
+3. Create default templates for different project types
+4. Ensure naming convention enforcement (e.g., `${projectPrefix}-${env}-${region}-${resourceType}`)
+5. Document all configuration options with examples
+
+# Test Strategy:
+1. Create test configurations for various scenarios (minimal, full-featured)
+2. Validate against schema to ensure proper error messages
+3. Test with edge cases (missing required fields, invalid values)
+4. Verify that validation catches common misconfigurations
+5. Ensure schema is extensible for future modules
+
+# Subtasks:
+## 1. Design bicep.config.json schema structure [done]
+### Dependencies: None
+### Description: Create a comprehensive JSON schema that defines all valid properties, types, and constraints for the bicep.config.json file
+### Details:
+Define the root structure, required vs optional fields, property types, and nested objects. Include support for linting rules, formatting preferences, module configurations, and environment settings. Ensure the schema is extensible for future additions. Reference existing Bicep documentation to ensure all configuration options are covered.
+
+## 2. Implement schema validation logic [done]
+### Dependencies: 1.1
+### Description: Develop the validation system that will verify bicep.config.json files against the defined schema
+### Details:
+Create validation functions that check for schema compliance, type correctness, and constraint satisfaction. Implement error collection to provide comprehensive feedback on validation failures. Include support for both synchronous and asynchronous validation. Design the validation API to be easily integrated with CLI tools, IDEs, and CI/CD pipelines.
+
+## 3. Create default templates and examples [done]
+### Dependencies: 1.1
+### Description: Develop a set of default bicep.config.json templates for common scenarios and usage patterns
+### Details:
+Create templates for different project types (web apps, microservices, data pipelines). Include examples with comments explaining each configuration option. Provide minimal, standard, and comprehensive configuration examples. Ensure templates follow best practices and demonstrate proper usage of all major schema features.
+
+## 4. Establish naming conventions and best practices [done]
+### Dependencies: 1.1, 1.3
+### Description: Define and document naming conventions, patterns, and best practices for bicep.config.json files
+### Details:
+Create guidelines for property naming, file organization, and configuration management. Document recommended patterns for different deployment environments. Include guidance on versioning configuration files and managing environment-specific settings. Provide recommendations for handling sensitive configuration data.
+
+## 5. Create comprehensive documentation [done]
+### Dependencies: 1.1, 1.2, 1.3, 1.4
+### Description: Develop detailed documentation covering the schema, validation system, usage examples, and integration guides
+### Details:
+Write technical documentation explaining the schema structure and validation rules. Create user guides with step-by-step instructions for common tasks. Include troubleshooting sections for common validation errors. Document the API for the validation system. Create integration guides for popular IDEs, build systems, and CI/CD platforms.
+

@@ -1,0 +1,106 @@
+# Storage Account Sample Configuration
+# This file demonstrates how to configure the Storage Account module
+
+# Project metadata
+metadata:
+  projectName: myapp
+  environment: prod
+  location: eastus2
+
+# Resource tags
+tags:
+  environment: production
+  managedBy: bicep
+  costCenter: "12345"
+  businessUnit: "E-Commerce"
+  dataClassification: "Confidential"
+
+# Feature toggles
+featureToggles:
+  enableStorageAccount: true
+
+# Module configurations
+moduleConfigurations:
+  storageAccount:
+    # Basic settings
+    storageAccountName: "mystorageaccount"  # Will be suffixed with environment and random string
+    skuName: Standard_GRS
+    skuTier: Standard
+    kind: StorageV2
+    accessTier: Hot
+    isHnsEnabled: false  # Enable for Azure Data Lake Storage Gen2
+    
+    # Networking
+    networkRuleSet:
+      defaultAction: Deny
+      bypass: AzureServices
+      ipRules: 
+        - value: "20.190.128.0/18"
+          action: "Allow"
+        - value: "40.126.0.0/18"
+          action: "Allow"
+      virtualNetworkRules: 
+        - id: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Network/virtualNetworks/my-vnet/subnets/my-subnet"
+          action: "Allow"
+    
+    # Private endpoints
+    privateEndpoints:
+      - name: "storpe-blob"
+        subnetId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Network/virtualNetworks/my-vnet/subnets/private-endpoints"
+        groupIds: 
+          - "blob"
+    
+    # Containers and file shares
+    blobContainers:
+      - name: "appdata"
+        publicAccess: "None"
+        metadata:
+          environment: "production"
+          managedBy: "bicep"
+      - name: "uploads"
+        publicAccess: "Blob"
+        metadata:
+          environment: "production"
+          purpose: "user-uploads"
+    
+    fileShares:
+      - name: "shared"
+        quotaInGB: 5120
+        enabledProtocols: "SMB"
+        metadata:
+          environment: "production"
+          department: "hr"
+    
+    # Queues
+    queues:
+      - name: "process-orders"
+        metadata:
+          environment: "production"
+          purpose: "order-processing"
+      - name: "notifications"
+        metadata:
+          environment: "production"
+          purpose: "system-notifications"
+    
+    # Tables
+    tables:
+      - name: "customers"
+      - name: "orders"
+      - name: "inventory"
+    
+    # Diagnostics
+    diagnostics:
+      logAnalyticsWorkspaceId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.OperationalInsights/workspaces/my-workspace"
+      enableAllMetrics: true
+      enableAllLogs: true
+      metricsRetentionInDays: 30
+      logsRetentionInDays: 30
+
+# Bicep settings
+bicepSettings:
+  linter:
+    enabled: true
+    rules:
+      no-unused-params: warning
+      no-unused-vars: warning
+      no-hardcoded-env-urls: warning

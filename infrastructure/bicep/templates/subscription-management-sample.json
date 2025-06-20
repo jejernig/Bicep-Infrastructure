@@ -1,0 +1,162 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectName": {
+      "value": "contoso-api"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "operationalMode": {
+      "value": "shared"
+    },
+    "sharedApimResourceId": {
+      "value": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/shared-apim-rg/providers/Microsoft.ApiManagement/service/shared-apim"
+    },
+    "subscriptions": {
+      "value": [
+        {
+          "name": "basic-subscription",
+          "displayName": "Basic API Access",
+          "productName": "contoso-api-basic-product",
+          "state": "active",
+          "allowTracing": true,
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        },
+        {
+          "name": "premium-subscription",
+          "displayName": "Premium API Access",
+          "productName": "contoso-api-premium-product",
+          "state": "active",
+          "allowTracing": true
+        },
+        {
+          "name": "partner-subscription",
+          "displayName": "Partner API Access",
+          "productName": "contoso-api-partner-product",
+          "state": "submitted",
+          "allowTracing": true
+        }
+      ]
+    },
+    "approvalWorkflow": {
+      "value": {
+        "notificationEmails": [
+          "api-admin@contoso.com",
+          "api-support@contoso.com"
+        ],
+        "expirationEmails": [
+          "api-admin@contoso.com"
+        ],
+        "webhookUrl": "https://contoso-api-approvals.azurewebsites.net/api/subscription-approval",
+        "webhookCredential": "SharedAccessSignature sr=https%3A%2F%2Fcontoso-api-approvals.azurewebsites.net&sig=ABC123"
+      }
+    },
+    "quotas": {
+      "value": [
+        {
+          "name": "basic-quota",
+          "description": "Basic tier quota",
+          "calls": 1000,
+          "renewalPeriod": "86400",
+          "rateLimit": {
+            "calls": 10,
+            "renewalPeriod": "60"
+          }
+        },
+        {
+          "name": "premium-quota",
+          "description": "Premium tier quota",
+          "calls": 10000,
+          "renewalPeriod": "86400",
+          "rateLimit": {
+            "calls": 100,
+            "renewalPeriod": "60"
+          }
+        },
+        {
+          "name": "partner-quota",
+          "description": "Partner tier quota",
+          "calls": 50000,
+          "renewalPeriod": "86400",
+          "rateLimit": {
+            "calls": 500,
+            "renewalPeriod": "60"
+          },
+          "spikeArrest": {
+            "calls": 1000,
+            "renewalPeriod": "300"
+          }
+        }
+      ]
+    },
+    "usageTracking": {
+      "value": {
+        "applicationInsightsId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/monitoring-rg/providers/Microsoft.Insights/components/contoso-api-insights",
+        "applicationInsightsKey": "00000000-0000-0000-0000-000000000000",
+        "apis": [
+          {
+            "name": "contoso-users-api",
+            "alwaysLog": "allErrors",
+            "logClientIp": true,
+            "samplingPercentage": 100,
+            "verbosity": "information",
+            "requestHeaders": [
+              "User-Agent",
+              "Referer",
+              "Accept-Language"
+            ],
+            "responseHeaders": [
+              "Content-Type",
+              "Content-Length"
+            ]
+          },
+          {
+            "name": "contoso-products-api",
+            "alwaysLog": "allErrors",
+            "logClientIp": true,
+            "samplingPercentage": 50,
+            "verbosity": "information"
+          }
+        ]
+      }
+    },
+    "lifecycleConfig": {
+      "value": {
+        "expirationHandling": true,
+        "renewalNotification": {
+          "daysBeforeExpiration": 30
+        },
+        "gracePeriod": {
+          "days": 7
+        },
+        "revocationHandling": true
+      }
+    },
+    "notificationConfig": {
+      "value": {
+        "creationEmails": [
+          "api-admin@contoso.com",
+          "api-notifications@contoso.com"
+        ],
+        "cancellationEmails": [
+          "api-admin@contoso.com",
+          "api-notifications@contoso.com"
+        ],
+        "quotaEmails": [
+          "api-admin@contoso.com",
+          "api-monitoring@contoso.com"
+        ],
+        "webhookUrl": "https://contoso-api-notifications.azurewebsites.net/api/subscription-events",
+        "webhookCredential": "SharedAccessSignature sr=https%3A%2F%2Fcontoso-api-notifications.azurewebsites.net&sig=XYZ789"
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "metadata": {
+    "projectName": "billing",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "development",
+    "owner": "Billing Team",
+    "costCenter": "12345"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableKeyVault": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "operationalMode": "shared",
+      "sharedApimResourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/central-apis-rg/providers/Microsoft.ApiManagement/service/central-apim",
+      "products": [
+        {
+          "name": "billing-internal",
+          "displayName": "Billing Internal APIs",
+          "description": "APIs for internal billing operations",
+          "state": "published",
+          "subscriptionSettings": {
+            "subscriptionRequired": true,
+            "approvalRequired": true,
+            "subscriptionsLimit": 5
+          },
+          "groups": ["administrators", "developers"],
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          },
+          "tags": {
+            "department": "finance",
+            "environment": "development"
+          }
+        },
+        {
+          "name": "billing-public",
+          "displayName": "Billing Public APIs",
+          "description": "APIs for public billing information",
+          "state": "published",
+          "subscriptionSettings": {
+            "subscriptionRequired": true,
+            "approvalRequired": false,
+            "subscriptionsLimit": 10
+          },
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /><rate-limit calls=\"5\" renewal-period=\"60\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        }
+      ],
+      "apis": [
+        {
+          "name": "invoices-api",
+          "displayName": "Invoices API",
+          "path": "invoices",
+          "version": "v1",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/invoices-v1.json",
+          "productName": "billing-internal",
+          "policies": {
+            "cors": {
+              "allowedOrigins": ["https://portal.example.com", "https://admin.example.com"],
+              "allowedMethods": ["GET", "POST", "PUT", "DELETE"],
+              "allowedHeaders": ["Content-Type", "Authorization"]
+            }
+          }
+        },
+        {
+          "name": "payments-api",
+          "displayName": "Payments API",
+          "path": "payments",
+          "version": "v1",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/payments-v1.json",
+          "productName": "billing-internal",
+          "policies": {
+            "rateLimit": {
+              "callsPerSecond": 10,
+              "renewalPeriod": 60,
+              "counter": "payments-api"
+            }
+          }
+        },
+        {
+          "name": "status-api",
+          "displayName": "Payment Status API",
+          "path": "status",
+          "version": "v1",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/status-v1.json",
+          "productName": "billing-public"
+        }
+      ]
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "Y1"
+    },
+    "keyVault": {
+      "sku": "standard"
+    }
+  }
+}

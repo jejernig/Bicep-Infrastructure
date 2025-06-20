@@ -1,0 +1,75 @@
+{
+  "metadata": {
+    "projectName": "sampleproject",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "development",
+    "project": "bicep-infrastructure",
+    "owner": "infrastructure-team"
+  },
+  "featureToggles": {
+    "appService": true
+  },
+  "moduleConfigurations": {
+    "appService": {
+      "name": "sampleapp",
+      "sku": "B1",
+      "runtimeStack": "DOTNETCORE|6.0",
+      "systemAssignedIdentity": true,
+      "userAssignedIdentities": {},
+      "appSettings": [
+        {
+          "name": "WEBSITE_RUN_FROM_PACKAGE",
+          "value": "1"
+        },
+        {
+          "name": "ASPNETCORE_ENVIRONMENT",
+          "value": "Development"
+        },
+        {
+          "name": "AzureWebJobsStorage",
+          "value": "DefaultEndpointsProtocol=https;AccountName=storageaccount;AccountKey=key;EndpointSuffix=core.windows.net"
+        }
+      ],
+      "connectionStrings": [
+        {
+          "name": "DefaultConnection",
+          "value": "Server=myserver.database.windows.net;Database=mydb;User Id=admin;Password=password;",
+          "type": "SQLAzure"
+        }
+      ],
+      "diagnostics": {
+        "enabled": true,
+        "logAnalyticsWorkspaceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/logs-rg/providers/Microsoft.OperationalInsights/workspaces/app-logs",
+        "logCategories": [
+          "AppServiceHTTPLogs",
+          "AppServiceConsoleLogs",
+          "AppServiceAppLogs"
+        ],
+        "retentionDays": 30
+      },
+      "deploymentSlots": [
+        {
+          "name": "staging",
+          "appSettings": [
+            {
+              "name": "ASPNETCORE_ENVIRONMENT",
+              "value": "Staging"
+            }
+          ],
+          "autoSwapSlotName": "production"
+        }
+      ],
+      "stickySettings": {
+        "appSettingNames": [
+          "WEBSITE_RUN_FROM_PACKAGE"
+        ],
+        "connectionStringNames": [
+          "DefaultConnection"
+        ]
+      }
+    }
+  }
+}

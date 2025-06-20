@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "projectName": "payments",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "development",
+    "owner": "Payments Team",
+    "costCenter": "54321"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableKeyVault": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "operationalMode": "shared",
+      "sharedApimResourceId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/central-apis-rg/providers/Microsoft.ApiManagement/service/central-apim",
+      "globalPolicy": {
+        "format": "xml",
+        "value": "<policies><inbound><cors allow-credentials=\"true\"><allowed-origins><origin>https://*.example.com</origin></allowed-origins><allowed-methods><method>GET</method><method>POST</method><method>PUT</method><method>DELETE</method><method>PATCH</method><method>OPTIONS</method></allowed-methods><allowed-headers><header>*</header></allowed-headers><expose-headers><header>*</header></expose-headers></cors><set-header name=\"X-Request-ID\" exists-action=\"skip\"><value>@(context.RequestId)</value></set-header><base /></inbound><backend><base /></backend><outbound><set-header name=\"X-Powered-By\" exists-action=\"delete\" /><set-header name=\"X-AspNet-Version\" exists-action=\"delete\" /><set-header name=\"Server\" exists-action=\"delete\" /><base /></outbound><on-error><base /><set-header name=\"X-Error-ID\" exists-action=\"override\"><value>@(context.RequestId)</value></set-header></on-error></policies>"
+      },
+      "namedValues": [
+        {
+          "name": "payments-backend-url",
+          "displayName": "payments-backend-url",
+          "value": "https://payments-api.example.com",
+          "secret": false
+        },
+        {
+          "name": "payments-appinsights-key",
+          "displayName": "payments-appinsights-key",
+          "value": "00000000-0000-0000-0000-000000000000",
+          "secret": true
+        }
+      ],
+      "policyFragments": [
+        {
+          "name": "payments-cors-policy",
+          "description": "CORS policy for Payments APIs",
+          "format": "xml",
+          "value": "<cors allow-credentials=\"true\"><allowed-origins><origin>https://payments.example.com</origin></allowed-origins><allowed-methods><method>GET</method><method>POST</method><method>PUT</method><method>DELETE</method><method>OPTIONS</method></allowed-methods><allowed-headers><header>*</header></allowed-headers><expose-headers><header>*</header></expose-headers></cors>"
+        },
+        {
+          "name": "payments-rate-limit-policy",
+          "description": "Rate limiting policy for Payments APIs",
+          "format": "xml",
+          "value": "<rate-limit calls=\"5\" renewal-period=\"60\" />"
+        }
+      ],
+      "policyConfig": {
+        "diagnostics": {
+          "alwaysLog": "allErrors",
+          "logClientIp": true,
+          "samplingPercentage": 100,
+          "requestHeaders": ["Content-Type", "Authorization"],
+          "responseHeaders": ["Content-Type"]
+        },
+        "applicationInsightsId": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/monitoring-rg/providers/Microsoft.Insights/components/payments-insights",
+        "applicationInsightsKey": "00000000-0000-0000-0000-000000000000"
+      },
+      "products": [
+        {
+          "name": "payments-internal",
+          "displayName": "Payments Internal APIs",
+          "description": "APIs for internal payment processing operations",
+          "state": "published",
+          "subscriptionSettings": {
+            "subscriptionRequired": true,
+            "approvalRequired": true,
+            "subscriptionsLimit": 5
+          },
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /><include-fragment fragment-id=\"payments-rate-limit-policy\" /><validate-jwt header-name=\"Authorization\" failed-validation-httpcode=\"401\"><openid-config url=\"https://login.microsoftonline.com/common/.well-known/openid-configuration\" /><required-claims><claim name=\"aud\" match=\"any\"><value>api://payments</value></claim></required-claims></validate-jwt></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        },
+        {
+          "name": "payments-partner",
+          "displayName": "Payments Partner APIs",
+          "description": "APIs for external payment partners",
+          "state": "published",
+          "subscriptionSettings": {
+            "subscriptionRequired": true,
+            "approvalRequired": true,
+            "subscriptionsLimit": 10
+          },
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /><include-fragment fragment-id=\"payments-rate-limit-policy\" /><ip-filter action=\"allow\"><address-range from=\"203.0.113.0\" to=\"203.0.113.255\" /></ip-filter></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+          }
+        }
+      ],
+      "apis": [
+        {
+          "name": "payments-api-v1",
+          "displayName": "Payments API v1",
+          "path": "payments",
+          "version": "v1",
+          "versioningScheme": "path",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/payments-v1.json",
+          "productName": "payments-internal",
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /><include-fragment fragment-id=\"payments-cors-policy\" /><set-backend-service base-url=\"{{payments-backend-url}}\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>",
+            "operations": [
+              {
+                "name": "create-payment",
+                "value": "<policies><inbound><base /><validate-content content-type=\"application/json\" validate-as=\"json\" action=\"validate-only\" /><rate-limit calls=\"2\" renewal-period=\"10\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"
+              },
+              {
+                "name": "get-payment",
+                "value": "<policies><inbound><base /><cache-lookup vary-by-developer=\"false\" vary-by-developer-groups=\"false\" downstream-caching-type=\"none\"><vary-by-header>Accept</vary-by-header></cache-lookup></inbound><backend><base /></backend><outbound><base /><cache-store duration=\"60\" /></outbound><on-error><base /></on-error></policies>"
+              }
+            ],
+            "lifecycleStage": "current"
+          }
+        },
+        {
+          "name": "payments-api-v2",
+          "displayName": "Payments API v2",
+          "path": "payments",
+          "version": "v2",
+          "versioningScheme": "path",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/payments-v2.json",
+          "productName": "payments-internal",
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /><include-fragment fragment-id=\"payments-cors-policy\" /><set-backend-service base-url=\"{{payments-backend-url}}/v2\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>",
+            "lifecycleStage": "preview"
+          }
+        },
+        {
+          "name": "partner-payments-api",
+          "displayName": "Partner Payments API",
+          "path": "partner-payments",
+          "version": "v1",
+          "versioningScheme": "path",
+          "specificationFormat": "openapi+json-link",
+          "specificationValue": "https://raw.githubusercontent.com/example/apis/main/partner-payments-v1.json",
+          "productName": "payments-partner",
+          "policy": {
+            "format": "xml",
+            "value": "<policies><inbound><base /><set-backend-service base-url=\"{{payments-backend-url}}/partners\" /><authentication-certificate thumbprint=\"0123456789ABCDEF0123456789ABCDEF01234567\" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>",
+            "lifecycleStage": "current"
+          }
+        }
+      ]
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "Y1"
+    },
+    "keyVault": {
+      "sku": "standard"
+    }
+  }
+}

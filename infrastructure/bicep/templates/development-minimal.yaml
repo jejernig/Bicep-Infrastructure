@@ -1,0 +1,58 @@
+# Development Environment - Minimal Configuration
+# This configuration demonstrates a minimal setup for development environments
+
+# Project metadata
+metadata:
+  projectName: myapp
+  environment: dev
+  location: eastus2
+
+# Resource tags
+tags:
+  environment: development
+  managedBy: bicep
+  costCenter: "12345"
+  businessUnit: "E-Commerce"
+  dataClassification: "Non-Business"
+
+# Feature toggles - Only enable essential modules
+featureToggles:
+  enableRedisCache: false
+  enableCdn: false
+  enableFrontDoor: false
+  enableKeyVault: true
+  enableAppInsights: true
+  enableContainerRegistry: false
+  enableContainerInstance: false
+  enableApiManagement: false
+  enableSignalR: false
+  enableOpenAI: false
+
+# Module configurations
+moduleConfigurations:
+  # Key Vault configuration (minimal)
+  keyVault:
+    sku: standard
+    enabledForDeployment: true
+    enabledForTemplateDeployment: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 30
+    purgeProtectionEnabled: false
+    networkAcls:
+      defaultAction: "Allow"
+      bypass: "AzureServices"
+
+  # App Insights configuration (minimal)
+  appInsights:
+    applicationType: "web"
+    retentionInDays: 30
+    disableIpMasking: false
+    samplingPercentage: 50
+
+# Bicep settings
+bicepSettings:
+  linter:
+    enabled: true
+    rules:
+      no-unused-params: warning
+      no-unused-vars: warning

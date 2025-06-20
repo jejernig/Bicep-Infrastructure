@@ -1,0 +1,123 @@
+# .NET Aspire Deployment Sample
+# This file demonstrates how to configure the .NET Aspire module
+
+# Project metadata
+metadata:
+  projectName: aspire-demo
+  environment: dev
+  location: eastus
+
+# Resource tags
+tags:
+  environment: development
+  project: aspire-microservices
+  owner: development-team
+  costCenter: "54321"
+
+# Feature toggles
+featureToggles:
+  enableAspire: true
+  enableKeyVault: true
+  enableStorageAccount: true
+  enableSqlDatabase: true
+
+# .NET Aspire module configuration
+moduleConfigurations:
+  aspire:
+    containerAppEnvironment:
+      name: "aspire-${environment}-env"
+      internalLoadBalancerEnabled: false
+      logAnalyticsWorkspaceId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.OperationalInsights/workspaces/aspire-logs"
+      infrastructureSubnetId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Network/virtualNetworks/my-vnet/subnets/container-apps"
+      dockerBridgeCidr: "172.17.0.1/16"
+      platformReservedCidr: "10.0.0.0/16"
+      platformReservedDnsIp: "10.0.0.10"
+      zoneRedundant: false
+    
+    containerApps:
+      # API Service
+      - name: "catalog-api-${environment}"
+        containerImage: "ghcr.io/myorg/catalog-api"
+        containerImageTag: "latest"
+        containerPort: 80
+        replicas: 2
+        resources:
+          cpu: 0.5
+          memory: "1Gi"
+        env:
+          - name: "ASPNETCORE_ENVIRONMENT"
+            value: "Production"
+          - name: "ConnectionStrings__CatalogDb"
+            secretRef: "catalog-db-connection"
+        secrets:
+          - name: "catalog-db-connection"
+            value: "your-connection-string-here"
+        ingress:
+          external: true
+          targetPort: 80
+          allowInsecure: false
+          traffic:
+            - latestRevision: true
+              weight: 100
+        registry:
+          server: "ghcr.io"
+          username: "myusername"
+          passwordSecretRef: "ghcr-password"
+      
+      # Background Worker
+      - name: "order-processor-${environment}"
+        containerImage: "ghcr.io/myorg/order-processor"
+        containerImageTag: "latest"
+        containerPort: 80
+        replicas: 1
+        resources:
+          cpu: 0.25
+          memory: "0.5Gi"
+        env:
+          - name: "ASPNETCORE_ENVIRONMENT"
+            value: "Production"
+          - name: "ServiceBus__ConnectionString"
+            secretRef: "servicebus-connection"
+        secrets:
+          - name: "servicebus-connection"
+            value: "your-servicebus-connection-string"
+        ingress: null  # No ingress for background workers
+        registry:
+          server: "ghcr.io"
+          username: "myusername"
+          passwordSecretRef: "ghcr-password"
+      
+      # Frontend
+      - name: "webapp-${environment}"
+        containerImage: "ghcr.io/myorg/webapp"
+        containerImageTag: "latest"
+        containerPort: 80
+        replicas: 2
+        resources:
+          cpu: 0.5
+          memory: "1Gi"
+        env:
+          - name: "ASPNETCORE_ENVIRONMENT"
+            value: "Production"
+          - name: "Api__BaseUrl"
+            value: "https://catalog-api-${environment}.azurecontainerapps.io"
+        ingress:
+          external: true
+          targetPort: 80
+          allowInsecure: false
+          traffic:
+            - latestRevision: true
+              weight: 100
+        registry:
+          server: "ghcr.io"
+          username: "myusername"
+          passwordSecretRef: "ghcr-password"
+
+# Bicep settings
+bicepSettings:
+  linter:
+    enabled: true
+    rules:
+      no-unused-params: warning
+      no-unused-vars: warning
+      no-hardcoded-env-urls: warning

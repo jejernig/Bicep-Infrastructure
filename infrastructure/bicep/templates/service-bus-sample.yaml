@@ -1,0 +1,87 @@
+# Service Bus Sample Configuration
+# This file demonstrates the configuration options for the Service Bus module
+
+# Required: Service Bus namespace name
+namespaceName: my-service-bus-namespace
+
+# Optional: Location for the resources (defaults to resource group location)
+# location: eastus2
+
+# Optional: SKU for the Service Bus namespace (Basic, Standard, or Premium)
+sku: Standard
+
+# Optional: Capacity (throughput units) for Premium SKU (1-16)
+# capacity: 1
+
+# Optional: Enable infrastructure encryption (default: false)
+# enableInfrastructureEncryption: false
+
+# Optional: Minimum TLS version (1.0, 1.1, or 1.2)
+minimumTlsVersion: '1.2'
+
+# Optional: Public network access (Enabled/Disabled)
+# publicNetworkAccess: 'Enabled'
+
+# Queues configuration
+queues:
+  - name: my-queue-1
+    # lockDuration: PT5M
+    maxSizeInMegabytes: 1024
+    # requiresDuplicateDetection: false
+    # requiresSession: false
+    # defaultMessageTimeToLive: P14D
+    # deadLetteringOnMessageExpiration: false
+    # duplicateDetectionHistoryTimeWindow: PT10M
+    # maxDeliveryCount: 10
+    # enableBatchedOperations: true
+    # status: Active
+    # enablePartitioning: true
+    # maxMessageSizeInKilobytes: 1024
+
+  - name: my-queue-2
+    maxSizeInMegabytes: 2048
+    requiresSession: true
+    maxDeliveryCount: 5
+
+# Topics configuration
+topics:
+  - name: my-topic-1
+    defaultMessageTimeToLive: P14D
+    maxSizeInMegabytes: 1024
+    requiresDuplicateDetection: false
+    duplicateDetectionHistoryTimeWindow: PT10M
+    enableBatchedOperations: true
+    status: Active
+    supportOrdering: true
+    enablePartitioning: true
+    maxMessageSizeInKilobytes: 1024
+    
+    # Subscriptions for the topic
+    subscriptions:
+      - name: my-subscription-1
+        maxDeliveryCount: 10
+        lockDuration: PT1M
+        # requiresSession: false
+        # deadLetteringOnMessageExpiration: false
+        # forwardTo: another-queue
+        # forwardDeadLetteredMessagesTo: dlq-queue
+
+# Authorization rules
+authorizationRules:
+  # Namespace level rules
+  - name: RootManageSharedAccessKey
+    parentResourceType: namespaces
+    parentResourceName: ''  # Empty for namespace level
+    rights: 'Listen, Send, Manage'
+  
+  # Queue level rules
+  - name: Queue1-SendListen
+    parentResourceType: queues
+    parentResourceName: my-queue-1
+    rights: 'Listen, Send'
+  
+  # Topic level rules
+  - name: Topic1-Send
+    parentResourceType: topics
+    parentResourceName: my-topic-1
+    rights: 'Send'

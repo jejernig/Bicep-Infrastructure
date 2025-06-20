@@ -9,7 +9,7 @@
         "testStrategy": "1. Create test configurations for various scenarios (minimal, full-featured)\n2. Validate against schema to ensure proper error messages\n3. Test with edge cases (missing required fields, invalid values)\n4. Verify that validation catches common misconfigurations\n5. Ensure schema is extensible for future modules",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -17,7 +17,7 @@
             "description": "Create a comprehensive JSON schema that defines all valid properties, types, and constraints for the bicep.config.json file",
             "dependencies": [],
             "details": "Define the root structure, required vs optional fields, property types, and nested objects. Include support for linting rules, formatting preferences, module configurations, and environment settings. Ensure the schema is extensible for future additions. Reference existing Bicep documentation to ensure all configuration options are covered.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -27,7 +27,7 @@
               1
             ],
             "details": "Create validation functions that check for schema compliance, type correctness, and constraint satisfaction. Implement error collection to provide comprehensive feedback on validation failures. Include support for both synchronous and asynchronous validation. Design the validation API to be easily integrated with CLI tools, IDEs, and CI/CD pipelines.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -37,7 +37,7 @@
               1
             ],
             "details": "Create templates for different project types (web apps, microservices, data pipelines). Include examples with comments explaining each configuration option. Provide minimal, standard, and comprehensive configuration examples. Ensure templates follow best practices and demonstrate proper usage of all major schema features.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -48,7 +48,7 @@
               3
             ],
             "details": "Create guidelines for property naming, file organization, and configuration management. Document recommended patterns for different deployment environments. Include guidance on versioning configuration files and managing environment-specific settings. Provide recommendations for handling sensitive configuration data.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -61,7 +61,7 @@
               4
             ],
             "details": "Write technical documentation explaining the schema structure and validation rules. Create user guides with step-by-step instructions for common tasks. Include troubleshooting sections for common validation errors. Document the API for the validation system. Create integration guides for popular IDEs, build systems, and CI/CD platforms.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -75,7 +75,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -83,7 +83,7 @@
             "description": "Create the parameter structure for main.bicep that will accept configuration input from deployment pipelines",
             "dependencies": [],
             "details": "Define all required parameters including environment name, region, tags, and configuration objects. Create parameter types that support nested configuration objects. Include default values where appropriate and parameter decorators for allowed values. Document each parameter with clear descriptions of expected values and formats.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -93,7 +93,7 @@
               1
             ],
             "details": "Create variables to extract and transform configuration values. Implement validation checks for required configuration properties. Create helper functions for common configuration operations. Ensure proper error handling for missing or invalid configuration values. Document the configuration structure expected by the orchestrator.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -103,7 +103,7 @@
               2
             ],
             "details": "Define variables for resource name prefixes and suffixes based on environment. Create functions to generate standardized resource names. Ensure compliance with Azure naming restrictions for different resource types. Document the naming convention patterns for all resource types. Implement logic to handle special characters and length limitations.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -113,7 +113,7 @@
               2
             ],
             "details": "Implement conditional expressions to determine which modules should be deployed. Create module references with appropriate scoping (resourceGroup, subscription, etc.). Pass the correct subset of parameters to each module. Ensure proper error handling for module deployment failures. Document the conditions that trigger each module deployment.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -123,7 +123,7 @@
               4
             ],
             "details": "Analyze resource dependencies across modules. Use the 'dependsOn' property to establish explicit dependencies. Implement implicit dependencies through reference expressions where appropriate. Create a dependency graph documentation to visualize the deployment sequence. Test the deployment order to ensure resources are created in the correct sequence.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 6,
@@ -133,7 +133,7 @@
               5
             ],
             "details": "Identify key outputs needed from each module. Configure output variables to capture and expose these values. Format outputs for easy consumption by deployment pipelines or documentation. Include resource identifiers, connection strings, and other important deployment artifacts. Document the expected outputs and their usage in downstream processes.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -147,7 +147,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -155,7 +155,7 @@
             "description": "Implement the core App Service resource and its required properties in Bicep",
             "dependencies": [],
             "details": "Create the main.bicep file for the App Service module with parameters for name, location, SKU, etc. Implement the basic App Service Plan and App Service resources with required properties. Include standard tags and naming convention support. Ensure proper resource relationships are established between the App Service and App Service Plan.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -165,7 +165,7 @@
               1
             ],
             "details": "Extend the module to support app settings as a parameter. Implement connection strings configuration. Add support for site configuration properties like always on, HTTP version, etc. Include CORS settings configuration. Ensure all configuration options are properly documented with parameter descriptions.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -176,7 +176,7 @@
               2
             ],
             "details": "Add parameters to control deployment slot creation. Implement the deployment slot resource with proper configuration. Support slot-specific settings and configuration. Ensure proper relationship between slots and the main App Service. Add support for auto-swap settings if applicable.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -186,7 +186,7 @@
               1
             ],
             "details": "Add parameters for system-assigned and user-assigned managed identities. Implement diagnostic settings with configurable log categories and retention policies. Add support for sending logs to Log Analytics, Storage Account, or Event Hub. Ensure proper outputs are exposed for the identity information. Include proper documentation for all identity and diagnostic parameters.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -200,7 +200,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -208,7 +208,7 @@
             "description": "Create the storage account resource required for Function App operation",
             "dependencies": [],
             "details": "Implement the storage account resource in the Bicep module with appropriate parameters for name, SKU, kind, and access tier. Include configuration for blob, queue, and table services. Ensure proper naming convention compatibility with Function Apps and implement conditional deployment based on whether a custom storage account is provided.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -216,7 +216,7 @@
             "description": "Set up Application Insights integration for Function App monitoring",
             "dependencies": [],
             "details": "Implement Application Insights resource or reference to existing instance. Configure sampling rate, retention policies, and workspace connection. Create output variables for instrumentation key and connection string. Ensure conditional deployment based on monitoring requirements parameter.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -224,7 +224,7 @@
             "description": "Create the hosting plan resource with support for multiple hosting models",
             "dependencies": [],
             "details": "Implement App Service Plan resource with support for Consumption, Premium, and Dedicated hosting models. Configure auto-scaling settings, instance counts, and SKU selection. Include parameters for OS preference (Windows/Linux) and implement reserved instances option for production environments.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -236,7 +236,7 @@
               3
             ],
             "details": "Create the Function App resource with proper references to storage account, app insights, and hosting plan. Implement app settings including runtime stack, version, and environment variables. Configure connection strings, identity settings (MSI), and deployment options. Implement output variables for Function App endpoints and identity information.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -250,7 +250,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -258,7 +258,7 @@
             "description": "Set up the foundational structure for the Key Vault Bicep module including parameters, variables, and the main resource definition.",
             "dependencies": [],
             "details": "Create a new Bicep file for Key Vault with essential parameters such as name, location, SKU, tenant ID, and resource tags. Define the core Key Vault resource with required properties. Include output values for the Key Vault ID, name, and URI. Implement proper documentation using comments.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -268,7 +268,7 @@
               1
             ],
             "details": "Create parameters to accept access policy configurations including object IDs, application IDs, and permission sets for keys, secrets, and certificates. Implement the accessPolicies property in the Key Vault resource. Add validation to ensure proper formatting of access policy inputs. Include examples of common access policy scenarios in the documentation.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -278,7 +278,7 @@
               1
             ],
             "details": "Create a parameter to accept an array of secrets to be created. Implement a loop to create each secret as a child resource of the Key Vault. Add support for setting content type, expiration date, and activation date for secrets. Include proper error handling and validation for secret names and values. Document best practices for secret management.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -288,7 +288,7 @@
               1
             ],
             "details": "Add parameters for network ACLs including IP rules, virtual network rules, and default action (Allow/Deny). Implement soft-delete and purge protection configuration options. Add support for enabling Azure RBAC for authorization. Configure private endpoint connections if needed. Include parameters for enabling advanced threat protection. Document security best practices and compliance considerations.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -302,7 +302,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -310,7 +310,7 @@
             "description": "Develop the core Bicep module for SQL Server provisioning with configurable parameters",
             "dependencies": [],
             "details": "Create a Bicep module that provisions an Azure SQL Server with configurable parameters including server name, location, and resource tags. Include parameters for administrator login credentials with secure string handling. Implement resource outputs for server ID, name, and FQDN.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -320,7 +320,7 @@
               1
             ],
             "details": "Extend the Bicep module to include SQL Database creation with parameters for database name, SKU (Basic, Standard, Premium), max size, elastic pool options, and collation settings. Implement conditional deployment logic for different service tiers and performance levels. Include outputs for database connection information.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -330,7 +330,7 @@
               1
             ],
             "details": "Add parameters and resources for SQL firewall rules including options for Azure services access, specific IP ranges, and subnet access. Implement virtual network rule configurations for private endpoints. Create parameters to toggle 'Allow Azure Services' access and public network access flags with appropriate defaults for security.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -340,7 +340,7 @@
               1
             ],
             "details": "Extend the module to support both SQL authentication and Azure Active Directory authentication. Include parameters for AAD admin configuration, managed identity integration, and conditional deployment of authentication methods. Implement secure parameter handling for credentials and document security best practices.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -351,7 +351,7 @@
               4
             ],
             "details": "Generate and output connection strings for different authentication methods. Implement optional Key Vault integration to store connection strings as secrets. Create parameters to control connection string format (ADO.NET, JDBC, ODBC) and include conditional logic to handle different authentication methods in the connection strings. Add documentation for connection string usage patterns.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -365,7 +365,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -373,7 +373,7 @@
             "description": "Develop the core Bicep module for creating Azure Service Bus namespaces with configurable SKU, capacity, and zone redundancy options.",
             "dependencies": [],
             "details": "Create a Bicep module that defines the Service Bus namespace resource with parameters for name, location, SKU (Basic, Standard, Premium), capacity, zone redundancy, and tags. Include support for private endpoints and network rules if applicable. Implement proper output variables for the namespace ID and endpoint.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -383,7 +383,7 @@
               1
             ],
             "details": "Develop a Bicep module for queue creation that supports parameters like lock duration, max size, TTL, duplicate detection, session support, and dead-letter settings. The module should be able to create multiple queues based on an array input and properly nest under the namespace resource. Include authorization rules specific to queues.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -393,7 +393,7 @@
               1
             ],
             "details": "Develop Bicep modules for topics and subscriptions that support all configuration options including auto-delete, TTL, and forwarding. Implement subscription filtering rules (SQL filter, correlation filter) and dead-letter settings. Design the module to handle dynamic creation of multiple subscriptions under each topic using array inputs.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -405,7 +405,7 @@
               3
             ],
             "details": "Develop the authorization rules component that can be applied at namespace, queue, or topic level. Support different rights combinations (Send, Listen, Manage) and handle the creation of multiple rules. Ensure proper nesting of resources and parameter validation for the different scopes of authorization.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -418,7 +418,7 @@
               4
             ],
             "details": "Implement secure output of connection strings and keys for the created resources. Create comprehensive documentation with examples for different scenarios: basic namespace, queues with authorization, topics with subscriptions, etc. Include parameter tables explaining all possible configuration options and their default values. Add validation decorators for all parameters.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -432,7 +432,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -440,7 +440,7 @@
             "description": "Define the architecture for both shared and dedicated APIM operational modes, including resource group structures, naming conventions, and isolation patterns.",
             "dependencies": [],
             "details": "Create detailed architecture diagrams showing how APIs will be organized in both shared and dedicated modes. Document the decision criteria for when to use each mode. Define isolation boundaries between different projects sharing the same APIM instance. Establish naming conventions for APIs, products, and policies that ensure uniqueness across projects.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -450,7 +450,7 @@
               1
             ],
             "details": "Create templates for API definitions that include required metadata. Implement validation checks to ensure API paths don't conflict across projects in shared mode. Develop automation scripts for API registration that handle cross-resource group references. Include documentation on how to register APIs with proper versioning information.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -461,7 +461,7 @@
               2
             ],
             "details": "Define global policies that apply to all APIs. Create templates for product and API-level policies. Implement a mechanism to prevent policy conflicts between different projects. Develop a testing framework to validate policy behavior. Document the policy inheritance model and override capabilities.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -471,7 +471,7 @@
               2
             ],
             "details": "Define product creation guidelines including naming conventions and metadata requirements. Implement access control mechanisms to ensure projects can only modify their own products. Create automation for associating APIs with products. Document the product lifecycle management process including creation, updates, and deprecation.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -481,7 +481,7 @@
               2
             ],
             "details": "Define version numbering scheme and path structure. Implement mechanisms for maintaining multiple API versions simultaneously. Create processes for deprecating and retiring old versions. Develop documentation templates that clearly communicate version differences to API consumers. Implement version-specific policy capabilities.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 6,
@@ -492,7 +492,7 @@
               4
             ],
             "details": "Develop subscription approval workflows for different project scenarios. Implement usage quotas and rate limiting appropriate for each project. Create reporting mechanisms to track API usage by project and subscription. Document the subscription lifecycle including creation, approval, renewal, and revocation processes. Implement notification systems for subscription-related events.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -506,7 +506,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -514,7 +514,7 @@
             "description": "Create a robust configuration flag system to enable/disable optional modules",
             "dependencies": [],
             "details": "Design and implement a configuration flag system that allows users to toggle optional modules on/off. Create a standardized approach for defining module flags with sensible defaults. Ensure flags can be set via variables.tf with appropriate descriptions and validation. Test different flag combinations to verify proper behavior.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -524,7 +524,7 @@
               1
             ],
             "details": "Develop reusable module skeleton templates that incorporate conditional creation logic based on configuration flags. Implement count or for_each mechanisms to conditionally create resources. Ensure proper handling of module inputs when disabled. Create a consistent pattern for module organization that supports the toggle system.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -534,7 +534,7 @@
               2
             ],
             "details": "Create a mechanism to safely handle outputs from optional modules that may not be created. Implement conditional logic to provide default/empty values when modules are disabled. Ensure dependent modules can safely reference outputs regardless of whether optional modules are enabled. Test various scenarios to verify output handling works correctly.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -546,7 +546,7 @@
               3
             ],
             "details": "Create detailed documentation explaining the Optional Modules Toggle System architecture and usage. Include examples demonstrating how to enable/disable modules, handle dependencies between optional modules, and properly reference conditional outputs. Document best practices for creating new optional modules. Create a test environment showcasing different configuration scenarios.",
-            "status": "pending"
+            "status": "done"
           }
         ]
       },
@@ -619,11 +619,92 @@
             "status": "pending"
           }
         ]
+      },
+      {
+        "id": 11,
+        "title": "Research and Define AI-Friendly Project Configuration Format",
+        "description": "Research alternative configuration formats (e.g., YAML) and structures for bicep.config focusing on simplicity and AI-friendliness. Implement YAML schema, validation scripts, and sample templates.",
+        "details": "1. Research and compare configuration formats:\n   - Evaluate YAML vs JSON vs other formats for readability and AI-friendliness\n   - Analyze structure patterns that are easier for AI tools to understand and generate\n   - Document findings with pros/cons of each approach\n\n2. Design YAML schema for bicep.config:\n   ```yaml\n   # Example schema structure\n   projectMetadata:\n     name: string\n     environment: string\n     region: string\n   features:\n     enableKeyVault: boolean\n     enableRedis: boolean\n     enableCdn: boolean\n   modules:\n     appService:\n       sku: string\n       runtimeStack: string\n     # Other module configurations\n   ```\n\n3. Create YAML schema definition file:\n   ```yaml\n   # bicep.config.schema.yaml\n   type: object\n   required:\n     - projectMetadata\n   properties:\n     projectMetadata:\n       type: object\n       required:\n         - name\n         - environment\n         - region\n       properties:\n         name:\n           type: string\n         environment:\n           type: string\n           enum: [dev, test, staging, prod]\n         region:\n           type: string\n     # Additional schema definitions\n   ```\n\n4. Implement validation scripts:\n   ```javascript\n   const yaml = require('js-yaml');\n   const fs = require('fs');\n   const path = require('path');\n   const Ajv = require('ajv');\n   \n   // Load YAML schema\n   const schema = yaml.load(fs.readFileSync('./bicep.config.schema.yaml', 'utf8'));\n   \n   // Initialize validator\n   const ajv = new Ajv();\n   const validate = ajv.compile(schema);\n   \n   // Load and validate config\n   function validateConfig(configPath) {\n     try {\n       const config = yaml.load(fs.readFileSync(configPath, 'utf8'));\n       const valid = validate(config);\n       \n       if (!valid) {\n         console.error('Configuration validation failed:');\n         console.error(validate.errors);\n         return false;\n       }\n       \n       console.log('Configuration is valid');\n       return true;\n     } catch (error) {\n       console.error('Error parsing configuration:', error);\n       return false;\n     }\n   }\n   ```\n\n5. Create conversion utility to support both formats:\n   ```javascript\n   function convertYamlToJson(yamlPath, jsonPath) {\n     const yamlContent = fs.readFileSync(yamlPath, 'utf8');\n     const jsonContent = yaml.load(yamlContent);\n     fs.writeFileSync(jsonPath, JSON.stringify(jsonContent, null, 2));\n     console.log(`Converted ${yamlPath} to ${jsonPath}`);\n   }\n   \n   function convertJsonToYaml(jsonPath, yamlPath) {\n     const jsonContent = require(jsonPath);\n     const yamlContent = yaml.dump(jsonContent);\n     fs.writeFileSync(yamlPath, yamlContent);\n     console.log(`Converted ${jsonPath} to ${yamlPath}`);\n   }\n   ```\n\n6. Create sample templates for common scenarios:\n   - Minimal configuration\n   - Full-featured configuration\n   - Environment-specific configurations\n\n7. Update documentation to reflect the new format options and provide guidance on when to use each format.",
+        "testStrategy": "1. Create a comprehensive test suite for the YAML schema validation:\n   - Test with valid configurations of varying complexity\n   - Test with invalid configurations to verify error messages\n   - Test edge cases (empty files, minimal configurations, etc.)\n\n2. Validate conversion utilities:\n   - Convert sample JSON configurations to YAML and verify structure\n   - Convert YAML configurations to JSON and verify structure\n   - Ensure round-trip conversion preserves all data\n\n3. Test integration with existing Bicep deployment pipeline:\n   - Modify the main.bicep orchestrator to accept YAML configuration\n   - Verify that all modules can be correctly configured using the YAML format\n   - Test deployment with YAML configuration to ensure it works identically to JSON\n\n4. Perform usability testing:\n   - Have team members create configurations in both formats\n   - Measure time to create and modify configurations\n   - Collect feedback on readability and maintainability\n\n5. Test AI-friendliness:\n   - Use AI tools to generate sample configurations in both formats\n   - Compare accuracy and completeness of AI-generated configurations\n   - Measure error rates and required human corrections\n\n6. Document test results and make recommendations for the preferred format based on empirical evidence.",
+        "status": "done",
+        "dependencies": [
+          1
+        ],
+        "priority": "medium",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Research and Compare Configuration Formats",
+            "description": "Evaluate different configuration formats (YAML, JSON, etc.) for readability and AI-friendliness, analyzing structure patterns that are easier for AI tools to understand and generate.",
+            "dependencies": [],
+            "details": "Create a comprehensive report comparing at least 3 formats (YAML, JSON, and one alternative like TOML). Include metrics for: human readability, AI parsing ease, schema validation support, community adoption, and tooling support. Document specific structure patterns that are more conducive to AI understanding and generation. Conclude with a clear recommendation.",
+            "status": "done",
+            "testStrategy": "Validate findings by creating sample configurations in each format and testing them with common AI tools to measure generation accuracy and error rates."
+          },
+          {
+            "id": 2,
+            "title": "Design YAML Schema for bicep.config",
+            "description": "Create a comprehensive YAML schema for bicep.config that captures all necessary configuration options while maintaining simplicity and AI-friendliness.",
+            "dependencies": [
+              1
+            ],
+            "details": "Based on research findings, design a YAML schema that includes: project metadata (name, environment, region), feature flags, module configurations, and deployment parameters. Ensure the schema uses consistent naming conventions, logical grouping, and appropriate nesting levels. Include comments that explain the purpose of each section to improve AI understanding.",
+            "status": "done",
+            "testStrategy": "Review the schema with team members to ensure it covers all required configuration options. Test with sample configurations to verify structure works as expected."
+          },
+          {
+            "id": 3,
+            "title": "Create YAML Schema Definition File",
+            "description": "Develop a formal schema definition file that can be used for validation and documentation of the bicep.config format.",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a bicep.config.schema.yaml file that defines the structure, required fields, data types, and constraints for all configuration options. Include proper type definitions, enumerations for constrained values, and pattern validations where appropriate. Ensure the schema is compatible with standard YAML validation tools.",
+            "status": "done",
+            "testStrategy": "Validate the schema definition against sample valid and invalid configurations to ensure it correctly identifies properly formatted files and rejects malformed ones."
+          },
+          {
+            "id": 4,
+            "title": "Implement Validation Scripts",
+            "description": "Develop scripts to validate bicep.config files against the schema and provide helpful error messages for invalid configurations.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create a Node.js validation utility that: 1) Loads the schema definition, 2) Parses and validates YAML configurations, 3) Provides clear, actionable error messages, 4) Can be run as a CLI tool and integrated into CI/CD pipelines. Use js-yaml for parsing and Ajv for validation. Include proper error handling for file access and parsing issues.",
+            "status": "done",
+            "testStrategy": "Create a test suite with valid and invalid configuration examples to verify the validator correctly identifies errors. Test edge cases like missing required fields, invalid data types, and constraint violations."
+          },
+          {
+            "id": 5,
+            "title": "Create Format Conversion Utilities",
+            "description": "Develop utilities to convert between YAML and JSON formats to support backward compatibility and user preferences.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement bidirectional conversion functions (YAML to JSON and JSON to YAML) that preserve all configuration data and structure. Include command-line interface for these utilities with appropriate options for input/output paths and validation during conversion. Ensure proper error handling and reporting during the conversion process.",
+            "status": "done",
+            "testStrategy": "Test conversion in both directions with various configuration complexities. Verify that converting from one format to another and back results in equivalent configurations."
+          },
+          {
+            "id": 6,
+            "title": "Create Sample Templates and Documentation",
+            "description": "Develop sample configuration templates for common scenarios and comprehensive documentation for the new format.",
+            "dependencies": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "details": "Create at least three sample templates: 1) Minimal configuration with only required fields, 2) Full-featured configuration showing all options, 3) Environment-specific configurations (dev, test, prod). Update project documentation to include: format comparison results, schema explanation, validation process, conversion instructions, and best practices for AI-friendly configurations. Include examples of how AI tools can generate and modify these configurations.",
+            "status": "done",
+            "testStrategy": "Review documentation with team members to ensure clarity and completeness. Test sample templates with validation scripts to confirm they are valid according to the schema."
+          }
+        ]
       }
     ],
     "metadata": {
       "created": "2025-06-19T14:52:26.384Z",
-      "updated": "2025-06-19T14:52:26.385Z",
+      "updated": "2025-06-20T01:29:19.131Z",
       "description": "Tasks for master context"
     }
   }

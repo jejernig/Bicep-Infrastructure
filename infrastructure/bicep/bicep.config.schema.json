@@ -1,0 +1,799 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bicep Configuration Schema",
+  "description": "Schema for bicep.config.json that drives infrastructure deployment",
+  "type": "object",
+  "required": ["metadata"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Project metadata and core settings",
+      "required": ["projectName", "environment", "location"],
+      "properties": {
+        "projectName": {
+          "type": "string",
+          "description": "The base name for all resources",
+          "minLength": 3,
+          "maxLength": 24,
+          "pattern": "^[a-zA-Z0-9]+$"
+        },
+        "environment": {
+          "type": "string",
+          "description": "The environment name",
+          "enum": ["dev", "test", "staging", "prod"]
+        },
+        "location": {
+          "type": "string",
+          "description": "The Azure region for all resources",
+          "default": "eastus"
+        }
+      }
+    },
+    "tags": {
+      "type": "object",
+      "description": "Tags for all resources",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "featureToggles": {
+      "type": "object",
+      "description": "Feature toggles for optional modules",
+      "properties": {
+        "enableApiManagement": {
+          "type": "boolean",
+          "description": "Enable API Management deployment",
+          "default": true
+        },
+        "enableFunctionApp": {
+          "type": "boolean",
+          "description": "Enable Function App deployment",
+          "default": true
+        },
+        "enableSignalR": {
+          "type": "boolean",
+          "description": "Enable SignalR Service deployment",
+          "default": true
+        },
+        "enableRedisCache": {
+          "type": "boolean",
+          "description": "Enable Redis Cache deployment",
+          "default": true
+        },
+        "enableKeyVault": {
+          "type": "boolean",
+          "description": "Enable Key Vault deployment",
+          "default": true
+        },
+        "enableOpenAI": {
+          "type": "boolean",
+          "description": "Enable OpenAI Service deployment",
+          "default": true
+        },
+        "enableContainerRegistry": {
+          "type": "boolean",
+          "description": "Enable Container Registry deployment",
+          "default": true
+        },
+        "enableStorageAccount": {
+          "type": "boolean",
+          "description": "Enable Storage Account deployment",
+          "default": true
+        },
+        "enableContainerInstance": {
+          "type": "boolean",
+          "description": "Enable Container Instance deployment",
+          "default": true
+        },
+        "enableSqlDatabase": {
+          "type": "boolean",
+          "description": "Enable SQL Database deployment",
+          "default": true
+        }
+      }
+    },
+    "moduleConfigurations": {
+      "type": "object",
+      "description": "Configuration settings for each module",
+      "properties": {
+        "apiManagement": {
+          "type": "object",
+          "description": "API Management configuration",
+          "properties": {
+            "operationalMode": {
+              "type": "string",
+              "description": "APIM operational mode: 'shared' uses an existing instance, 'dedicated' creates a new one",
+              "enum": ["shared", "dedicated"],
+              "default": "dedicated"
+            },
+            "sharedApimResourceId": {
+              "type": "string",
+              "description": "Resource ID of the shared APIM instance (required when operationalMode is 'shared')"
+            },
+            "sku": {
+              "type": "string",
+              "description": "API Management SKU (used only in dedicated mode)",
+              "enum": ["Developer", "Basic", "Standard", "Premium"],
+              "default": "Developer"
+            },
+            "capacity": {
+              "type": "integer",
+              "description": "API Management capacity (used only in dedicated mode)",
+              "minimum": 1,
+              "default": 1
+            },
+            "publisherEmail": {
+              "type": "string",
+              "description": "Publisher email for API Management (used only in dedicated mode)",
+              "format": "email"
+            },
+            "publisherName": {
+              "type": "string",
+              "description": "Publisher name for API Management (used only in dedicated mode)"
+            },
+            "apis": {
+              "type": "array",
+              "description": "APIs to register with APIM",
+              "items": {
+                "type": "object",
+                "required": ["name", "path"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the API"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Path segment for the API"
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "API version (used in path for shared mode)",
+                    "default": "v1"
+                  },
+                  "specificationFormat": {
+                    "type": "string",
+                    "description": "API specification format",
+                    "enum": ["openapi+json", "openapi+json-link", "openapi", "swagger-json", "swagger-link-json", "wadl-link-json", "wadl-xml", "wsdl", "wsdl-link"],
+                    "default": "openapi+json"
+                  },
+                  "specificationValue": {
+                    "type": "string",
+                    "description": "API specification content or URI depending on the format"
+                  },
+                  "productName": {
+                    "type": "string",
+                    "description": "Product name to associate the API with (optional)"
+                  },
+                  "policies": {
+                    "type": "object",
+                    "description": "API policies",
+                    "properties": {
+                      "cors": {
+                        "type": "object",
+                        "description": "CORS policy configuration",
+                        "properties": {
+                          "allowedOrigins": {
+                            "type": "array",
+                            "description": "Allowed origins for CORS",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "allowedMethods": {
+                            "type": "array",
+                            "description": "Allowed HTTP methods for CORS",
+                            "items": {
+                              "type": "string",
+                              "enum": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
+                            }
+                          },
+                          "allowedHeaders": {
+                            "type": "array",
+                            "description": "Allowed headers for CORS",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "exposeHeaders": {
+                            "type": "array",
+                            "description": "Headers to expose in CORS responses",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "rateLimit": {
+                        "type": "object",
+                        "description": "Rate limiting policy configuration",
+                        "properties": {
+                          "callsPerSecond": {
+                            "type": "integer",
+                            "description": "Maximum calls per second",
+                            "minimum": 1
+                          },
+                          "renewalPeriod": {
+                            "type": "integer",
+                            "description": "Renewal period in seconds",
+                            "minimum": 1
+                          },
+                          "counter": {
+                            "type": "string",
+                            "description": "Counter key for rate limiting"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "appService": {
+          "type": "object",
+          "description": "App Service configuration",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the App Service"
+            },
+            "sku": {
+              "type": "string",
+              "description": "App Service Plan SKU",
+              "default": "B1"
+            },
+            "runtimeStack": {
+              "type": "string",
+              "description": "Runtime stack for the App Service",
+              "default": "DOTNETCORE|6.0"
+            },
+            "systemAssignedIdentity": {
+              "type": "boolean",
+              "description": "Enable system-assigned managed identity",
+              "default": false
+            },
+            "userAssignedIdentities": {
+              "type": "object",
+              "description": "User-assigned managed identities to assign to the App Service"
+            },
+            "appSettings": {
+              "type": "array",
+              "description": "App settings for the App Service",
+              "items": {
+                "type": "object",
+                "required": ["name", "value"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "App setting name"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "App setting value"
+                  }
+                }
+              }
+            },
+            "connectionStrings": {
+              "type": "array",
+              "description": "Connection strings for the App Service",
+              "items": {
+                "type": "object",
+                "required": ["name", "value", "type"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Connection string name"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "Connection string value"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "Connection string type",
+                    "enum": ["SQLServer", "SQLAzure", "Custom", "MySql", "PostgreSQL", "RedisCache"]
+                  }
+                }
+              }
+            },
+            "diagnostics": {
+              "type": "object",
+              "description": "Diagnostic settings for the App Service",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable diagnostic settings",
+                  "default": false
+                },
+                "logAnalyticsWorkspaceId": {
+                  "type": "string",
+                  "description": "Resource ID of the Log Analytics workspace for diagnostics"
+                },
+                "diagnosticsStorageAccountId": {
+                  "type": "string",
+                  "description": "Resource ID of the Storage Account for diagnostics"
+                },
+                "eventHubAuthorizationRuleId": {
+                  "type": "string",
+                  "description": "Resource ID of the Event Hub for diagnostics"
+                },
+                "eventHubNamespaceId": {
+                  "type": "string",
+                  "description": "Resource ID of the Event Hub Namespace for diagnostics"
+                },
+                "logCategories": {
+                  "type": "array",
+                  "description": "Log categories to enable for diagnostics",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "retentionDays": {
+                  "type": "integer",
+                  "description": "Retention days for diagnostic logs",
+                  "default": 30
+                }
+              }
+            },
+            "deploymentSlots": {
+              "type": "array",
+              "description": "Deployment slots for the App Service",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the deployment slot"
+                  },
+                  "appSettings": {
+                    "type": "array",
+                    "description": "App settings for the deployment slot",
+                    "items": {
+                      "type": "object",
+                      "required": ["name", "value"],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "App setting name"
+                        },
+                        "value": {
+                          "type": "string",
+                          "description": "App setting value"
+                        }
+                      }
+                    }
+                  },
+                  "autoSwapSlotName": {
+                    "type": "string",
+                    "description": "Name of the slot to auto swap with"
+                  }
+                }
+              }
+            },
+            "stickySettings": {
+              "type": "object",
+              "description": "Settings that should be sticky between slot swaps",
+              "properties": {
+                "appSettingNames": {
+                  "type": "array",
+                  "description": "App setting names that should be sticky",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "connectionStringNames": {
+                  "type": "array",
+                  "description": "Connection string names that should be sticky",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "azureStorageConfigNames": {
+                  "type": "array",
+                  "description": "Azure storage config names that should be sticky",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "functionApp": {
+          "type": "object",
+          "description": "Function App configuration",
+          "properties": {
+            "runtime": {
+              "type": "string",
+              "description": "Function App runtime",
+              "enum": ["dotnet", "node", "python", "java"],
+              "default": "dotnet"
+            },
+            "sku": {
+              "type": "string",
+              "description": "Function App hosting plan SKU",
+              "enum": ["Y1", "B1", "S1", "P1V2"],
+              "default": "Y1"
+            },
+            "appSettings": {
+              "type": "array",
+              "description": "Additional app settings for the Function App",
+              "items": {
+                "type": "object",
+                "required": ["name", "value"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "App setting name"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "App setting value"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "signalR": {
+          "type": "object",
+          "description": "SignalR Service configuration",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "description": "SignalR SKU",
+              "enum": ["Free", "Standard"],
+              "default": "Standard"
+            },
+            "capacity": {
+              "type": "integer",
+              "description": "SignalR capacity",
+              "minimum": 1,
+              "default": 1
+            },
+            "serviceMode": {
+              "type": "string",
+              "description": "SignalR service mode",
+              "enum": ["Default", "Serverless", "Classic"],
+              "default": "Default"
+            }
+          }
+        },
+        "redisCache": {
+          "type": "object",
+          "description": "Redis Cache configuration",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "description": "Redis Cache SKU",
+              "enum": ["Basic", "Standard", "Premium"],
+              "default": "Standard"
+            },
+            "capacity": {
+              "type": "integer",
+              "description": "Redis Cache capacity",
+              "minimum": 0,
+              "maximum": 6,
+              "default": 1
+            },
+            "enableNonSslPort": {
+              "type": "boolean",
+              "description": "Enable non-SSL port",
+              "default": false
+            }
+          }
+        },
+        "keyVault": {
+          "type": "object",
+          "description": "Key Vault configuration",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "description": "Key Vault SKU",
+              "enum": ["standard", "premium"],
+              "default": "standard"
+            },
+            "enabledForDeployment": {
+              "type": "boolean",
+              "description": "Enable for VM deployment",
+              "default": false
+            },
+            "enabledForTemplateDeployment": {
+              "type": "boolean",
+              "description": "Enable for template deployment",
+              "default": true
+            },
+            "enabledForDiskEncryption": {
+              "type": "boolean",
+              "description": "Enable for disk encryption",
+              "default": false
+            },
+            "enablePurgeProtection": {
+              "type": "boolean",
+              "description": "Enable purge protection",
+              "default": true
+            },
+            "softDeleteRetentionInDays": {
+              "type": "integer",
+              "description": "Soft delete retention in days",
+              "minimum": 7,
+              "maximum": 90,
+              "default": 90
+            }
+          }
+        },
+        "openAI": {
+          "type": "object",
+          "description": "OpenAI Service configuration",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "description": "OpenAI SKU",
+              "enum": ["S0"],
+              "default": "S0"
+            },
+            "deployments": {
+              "type": "array",
+              "description": "OpenAI model deployments",
+              "items": {
+                "type": "object",
+                "required": ["name", "model"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Deployment name"
+                  },
+                  "model": {
+                    "type": "string",
+                    "description": "Model name",
+                    "enum": ["gpt-35-turbo", "gpt-35-turbo-16k", "gpt-4", "gpt-4-32k"]
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "Model version"
+                  },
+                  "capacity": {
+                    "type": "integer",
+                    "description": "Model capacity",
+                    "minimum": 1,
+                    "default": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "containerRegistry": {
+          "type": "object",
+          "description": "Container Registry configuration",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "description": "Container Registry SKU",
+              "enum": ["Basic", "Standard", "Premium"],
+              "default": "Standard"
+            },
+            "adminUserEnabled": {
+              "type": "boolean",
+              "description": "Enable admin user",
+              "default": true
+            }
+          }
+        },
+        "storageAccount": {
+          "type": "object",
+          "description": "Storage Account configuration",
+          "properties": {
+            "sku": {
+              "type": "string",
+              "description": "Storage Account SKU",
+              "enum": ["Standard_LRS", "Standard_GRS", "Standard_RAGRS", "Standard_ZRS", "Premium_LRS", "Premium_ZRS"],
+              "default": "Standard_LRS"
+            },
+            "kind": {
+              "type": "string",
+              "description": "Storage Account kind",
+              "enum": ["StorageV2", "Storage", "BlobStorage", "FileStorage", "BlockBlobStorage"],
+              "default": "StorageV2"
+            },
+            "accessTier": {
+              "type": "string",
+              "description": "Storage Account access tier",
+              "enum": ["Hot", "Cool"],
+              "default": "Hot"
+            },
+            "fileShares": {
+              "type": "array",
+              "description": "File shares to create",
+              "items": {
+                "type": "object",
+                "required": ["name", "quota"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "File share name"
+                  },
+                  "quota": {
+                    "type": "integer",
+                    "description": "File share quota in GB",
+                    "minimum": 1,
+                    "default": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+
+        "containerInstance": {
+          "type": "object",
+          "description": "Container Instance configuration",
+          "properties": {
+            "image": {
+              "type": "string",
+              "description": "Container image"
+            },
+            "port": {
+              "type": "integer",
+              "description": "Container port",
+              "default": 80
+            },
+            "cpuCores": {
+              "type": "number",
+              "description": "CPU cores",
+              "minimum": 0.5,
+              "default": 1
+            },
+            "memoryInGb": {
+              "type": "number",
+              "description": "Memory in GB",
+              "minimum": 0.5,
+              "default": 1.5
+            },
+            "environmentVariables": {
+              "type": "array",
+              "description": "Environment variables",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Environment variable name"
+                  },
+                  "value": {
+                    "type": "string",
+                    "description": "Environment variable value"
+                  },
+                  "secureValue": {
+                    "type": "string",
+                    "description": "Secure environment variable value"
+                  }
+                }
+              }
+            },
+            "volumeMounts": {
+              "type": "array",
+              "description": "Volume mounts",
+              "items": {
+                "type": "object",
+                "required": ["name", "mountPath", "shareName"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Volume name"
+                  },
+                  "mountPath": {
+                    "type": "string",
+                    "description": "Mount path"
+                  },
+                  "shareName": {
+                    "type": "string",
+                    "description": "File share name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "sqlDatabase": {
+          "type": "object",
+          "description": "SQL Database configuration",
+          "properties": {
+            "administratorLogin": {
+              "type": "string",
+              "description": "SQL Server administrator login"
+            },
+            "databaseSku": {
+              "type": "object",
+              "description": "SQL Database SKU",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "SKU name",
+                  "enum": ["Basic", "S0", "S1", "S2", "P1", "P2", "P4"],
+                  "default": "Basic"
+                },
+                "tier": {
+                  "type": "string",
+                  "description": "SKU tier",
+                  "enum": ["Basic", "Standard", "Premium"],
+                  "default": "Basic"
+                }
+              }
+            },
+            "allowAzureIPs": {
+              "type": "boolean",
+              "description": "Allow Azure services to access SQL Server",
+              "default": true
+            },
+            "firewallRules": {
+              "type": "array",
+              "description": "SQL Server firewall rules",
+              "items": {
+                "type": "object",
+                "required": ["name", "startIpAddress", "endIpAddress"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Firewall rule name"
+                  },
+                  "startIpAddress": {
+                    "type": "string",
+                    "description": "Start IP address",
+                    "format": "ipv4"
+                  },
+                  "endIpAddress": {
+                    "type": "string",
+                    "description": "End IP address",
+                    "format": "ipv4"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "bicepSettings": {
+      "type": "object",
+      "description": "Bicep linter and formatting settings",
+      "properties": {
+        "linterEnabled": {
+          "type": "boolean",
+          "description": "Enable Bicep linter",
+          "default": true
+        },
+        "linterRules": {
+          "type": "object",
+          "description": "Bicep linter rules",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["Off", "Warning", "Error"]
+          }
+        },
+        "formatting": {
+          "type": "object",
+          "description": "Bicep formatting settings",
+          "properties": {
+            "indentSize": {
+              "type": "integer",
+              "description": "Indentation size",
+              "minimum": 1,
+              "default": 2
+            },
+            "insertFinalNewline": {
+              "type": "boolean",
+              "description": "Insert final newline",
+              "default": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

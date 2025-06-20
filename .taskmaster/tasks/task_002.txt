@@ -1,0 +1,77 @@
+# Task ID: 2
+# Title: Develop main.bicep Orchestrator
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build the main Bicep orchestration script that parses the configuration and coordinates module deployment.
+# Details:
+1. Create main.bicep with parameters that match bicep.config.json schema
+2. Implement configuration parsing logic:
+   ```bicep
+   param config object
+   
+   var projectName = config.projectName
+   var environment = config.environment
+   var location = config.location
+   var enableKeyVault = contains(config, 'enableKeyVault') ? config.enableKeyVault : false
+   // Additional config parsing
+   ```
+3. Add conditional module loading based on feature flags:
+   ```bicep
+   module keyVault './modules/keyVault.bicep' = if (enableKeyVault) {
+     name: '${projectName}-${environment}-kv-deployment'
+     params: {
+       keyVaultName: '${projectName}-${environment}-kv'
+       location: location
+       // Additional parameters from config
+     }
+   }
+   ```
+4. Implement resource naming convention helper function
+5. Set up resource dependencies between modules
+6. Create output section to expose all relevant connection strings and endpoints
+
+# Test Strategy:
+1. Test with ARM what-if operation to validate deployment plan
+2. Verify module loading logic with different configuration combinations
+3. Test resource naming convention consistency
+4. Validate that dependencies are correctly established
+5. Ensure all required outputs are exposed
+
+# Subtasks:
+## 1. Define Parameter Structure [done]
+### Dependencies: None
+### Description: Create the parameter structure for main.bicep that will accept configuration input from deployment pipelines
+### Details:
+Define all required parameters including environment name, region, tags, and configuration objects. Create parameter types that support nested configuration objects. Include default values where appropriate and parameter decorators for allowed values. Document each parameter with clear descriptions of expected values and formats.
+
+## 2. Implement Configuration Parsing Logic [done]
+### Dependencies: 2.1
+### Description: Develop logic to parse and validate the incoming configuration objects
+### Details:
+Create variables to extract and transform configuration values. Implement validation checks for required configuration properties. Create helper functions for common configuration operations. Ensure proper error handling for missing or invalid configuration values. Document the configuration structure expected by the orchestrator.
+
+## 3. Create Resource Naming Convention System [done]
+### Dependencies: 2.2
+### Description: Implement a consistent naming convention system for all resources
+### Details:
+Define variables for resource name prefixes and suffixes based on environment. Create functions to generate standardized resource names. Ensure compliance with Azure naming restrictions for different resource types. Document the naming convention patterns for all resource types. Implement logic to handle special characters and length limitations.
+
+## 4. Implement Conditional Module Loading [done]
+### Dependencies: 2.2
+### Description: Create logic for conditionally deploying modules based on configuration flags
+### Details:
+Implement conditional expressions to determine which modules should be deployed. Create module references with appropriate scoping (resourceGroup, subscription, etc.). Pass the correct subset of parameters to each module. Ensure proper error handling for module deployment failures. Document the conditions that trigger each module deployment.
+
+## 5. Establish Module Dependencies [done]
+### Dependencies: 2.4
+### Description: Configure explicit dependencies between modules to ensure proper deployment order
+### Details:
+Analyze resource dependencies across modules. Use the 'dependsOn' property to establish explicit dependencies. Implement implicit dependencies through reference expressions where appropriate. Create a dependency graph documentation to visualize the deployment sequence. Test the deployment order to ensure resources are created in the correct sequence.
+
+## 6. Configure Output Handling [done]
+### Dependencies: 2.5
+### Description: Define outputs from the main.bicep file to expose important deployment information
+### Details:
+Identify key outputs needed from each module. Configure output variables to capture and expose these values. Format outputs for easy consumption by deployment pipelines or documentation. Include resource identifiers, connection strings, and other important deployment artifacts. Document the expected outputs and their usage in downstream processes.
+

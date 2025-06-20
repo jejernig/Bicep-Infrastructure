@@ -1,0 +1,1320 @@
+# YAML Schema for Bicep Configuration
+# This schema defines the structure for bicep.config.yaml files
+# It is designed to be AI-friendly and human-readable
+
+# Project metadata and core settings
+metadata:
+  type: object
+  required:
+    - projectName
+    - environment
+    - location
+  properties:
+    projectName:
+      type: string
+      description: The base name for all resources
+      minLength: 3
+      maxLength: 24
+      pattern: ^[a-zA-Z0-9]+$
+    environment:
+      type: string
+      description: The environment name
+      enum:
+        - dev
+        - test
+        - staging
+        - prod
+    location:
+      type: string
+      description: The Azure region for all resources
+      default: eastus
+
+# Resource tags
+tags:
+  type: object
+  description: Tags for all resources
+  additionalProperties:
+    type: string
+
+# Feature toggles for optional modules
+featureToggles:
+  type: object
+  description: Feature toggles for optional modules
+  properties:
+    enableApiManagement:
+      type: boolean
+      description: Enable API Management deployment
+      default: true
+    enableFunctionApp:
+      type: boolean
+      description: Enable Function App deployment
+      default: true
+    enableSignalR:
+      type: boolean
+      description: Enable SignalR Service deployment
+      default: true
+    enableRedisCache:
+      type: boolean
+      description: Enable Redis Cache deployment
+      default: true
+    enableKeyVault:
+      type: boolean
+      description: Enable Key Vault deployment
+      default: true
+    enableOpenAI:
+      type: boolean
+      description: Enable OpenAI Service deployment
+      default: true
+    enableContainerRegistry:
+      type: boolean
+      description: Enable Container Registry deployment
+      default: true
+    enableStorageAccount:
+      type: boolean
+      description: Enable Storage Account deployment
+      default: true
+    enableContainerInstance:
+      type: boolean
+      description: Enable Container Instance deployment
+      default: true
+    enableSqlDatabase:
+      type: boolean
+      description: Enable SQL Database deployment
+      default: true
+    enableServiceBus:
+      type: boolean
+      description: Enable Service Bus deployment
+      default: true
+    enableAspire:
+      type: boolean
+      description: Enable .NET Aspire deployment
+      default: false
+
+# .NET Aspire configuration
+aspire:
+  type: object
+  description: Configuration for .NET Aspire resources
+  properties:
+    containerApps:
+      type: object
+      description: Container Apps Environment and services configuration
+      properties:
+        environment:
+          type: object
+          description: Container Apps Environment configuration
+          properties:
+            name:
+              type: string
+              description: Name of the Container Apps Environment
+            logAnalyticsWorkspaceName:
+              type: string
+              description: Name of the Log Analytics workspace for Container Apps
+            zoneRedundant:
+              type: boolean
+              description: Whether the environment should be zone-redundant
+              default: false
+        services:
+          type: array
+          description: Container Apps services to deploy
+          items:
+            type: object
+            required:
+              - name
+              - source
+            properties:
+              name:
+                type: string
+                description: Name of the service
+              source:
+                type: object
+                description: Source configuration for the service
+                required:
+                  - type
+                properties:
+                  type:
+                    type: string
+                    description: Type of source
+                    enum:
+                      - container
+                      - code
+                  image:
+                    type: string
+                    description: Container image reference (required when type is 'container')
+                  codeRepository:
+                    type: string
+                    description: Code repository URL (required when type is 'code')
+                  codeBranch:
+                    type: string
+                    description: Code repository branch (used when type is 'code')
+                    default: main
+              resources:
+                type: object
+                description: Resource requirements for the service
+                properties:
+                  cpu:
+                    type: string
+                    description: CPU cores (e.g., '0.5', '1.0')
+                    default: '0.5'
+                  memory:
+                    type: string
+                    description: Memory allocation (e.g., '1Gi', '512Mi')
+                    default: '1Gi'
+              scale:
+                type: object
+                description: Scaling configuration for the service
+                properties:
+                  minReplicas:
+                    type: integer
+                    description: Minimum number of replicas
+                    default: 1
+                  maxReplicas:
+                    type: integer
+                    description: Maximum number of replicas
+                    default: 10
+                  rules:
+                    type: array
+                    description: Scaling rules
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the scaling rule
+                        type:
+                          type: string
+                          description: Type of scaling rule
+                          enum:
+                            - http
+                            - cpu
+                            - memory
+                        metadata:
+                          type: object
+                          description: Metadata for the scaling rule
+                          additionalProperties:
+                            type: string
+              env:
+                type: array
+                description: Environment variables for the service
+                items:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      description: Environment variable name
+                    value:
+                      type: string
+                      description: Environment variable value
+                    secretRef:
+                      type: string
+                      description: Reference to a secret for the value
+              dependencies:
+                type: array
+                description: Service dependencies
+                items:
+                  type: string
+              ingress:
+                type: object
+                description: Ingress configuration for the service
+                properties:
+                  external:
+                    type: boolean
+                    description: Whether the service should be externally accessible
+                    default: false
+                  targetPort:
+                    type: integer
+                    description: Target port for the service
+                    default: 80
+                  transport:
+                    type: string
+                    description: Transport protocol
+                    enum:
+                      - auto
+                      - http
+                      - http2
+                    default: auto
+                  allowInsecure:
+                    type: boolean
+                    description: Whether to allow insecure connections
+                    default: false
+    registry:
+      type: object
+      description: Container Registry configuration
+      properties:
+        name:
+          type: string
+          description: Name of the Container Registry
+        sku:
+          type: string
+          description: SKU for the Container Registry
+          enum:
+            - Basic
+            - Standard
+            - Premium
+          default: Standard
+    monitoring:
+      type: object
+      description: Monitoring configuration for Aspire services
+      properties:
+        applicationInsights:
+          type: object
+          description: Application Insights configuration
+          properties:
+            name:
+              type: string
+              description: Name of the Application Insights resource
+            samplingPercentage:
+              type: integer
+              description: Sampling percentage for telemetry
+              minimum: 0
+              maximum: 100
+              default: 100
+
+# Module configurations
+moduleConfigurations:
+  type: object
+  description: Configuration settings for each module
+  properties:
+    # Service Bus configuration
+    serviceBus:
+      type: object
+      description: Service Bus configuration
+      properties:
+        namespaceName:
+          type: string
+          description: Name of the Service Bus namespace
+        sku:
+          type: string
+          description: SKU for the Service Bus namespace
+          enum:
+            - Basic
+            - Standard
+            - Premium
+          default: Standard
+        capacity:
+          type: integer
+          description: Capacity (throughput units) for Premium SKU
+          minimum: 1
+          maximum: 16
+          default: 1
+        enableInfrastructureEncryption:
+          type: boolean
+          description: Enable infrastructure encryption
+          default: false
+        minimumTlsVersion:
+          type: string
+          description: Minimum TLS version
+          enum:
+            - '1.0'
+            - '1.1'
+            - '1.2'
+          default: '1.2'
+        publicNetworkAccess:
+          type: string
+          description: Public network access
+          enum:
+            - Enabled
+            - Disabled
+          default: 'Enabled'
+        queues:
+          type: array
+          description: Configuration for queues in the Service Bus namespace
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the queue
+              lockDuration:
+                type: string
+                description: Lock duration for the queue (ISO 8601 duration)
+                default: PT5M
+              maxSizeInMegabytes:
+                type: integer
+                description: Maximum size of the queue in megabytes
+                default: 1024
+              requiresDuplicateDetection:
+                type: boolean
+                description: Whether the queue requires duplicate detection
+                default: false
+              requiresSession:
+                type: boolean
+                description: Whether the queue requires sessions
+                default: false
+              defaultMessageTimeToLive:
+                type: string
+                description: Default message time to live (ISO 8601 duration)
+                default: P14D
+              deadLetteringOnMessageExpiration:
+                type: boolean
+                description: Whether messages should be dead-lettered on expiration
+                default: false
+              duplicateDetectionHistoryTimeWindow:
+                type: string
+                description: Duplicate detection history time window (ISO 8601 duration)
+                default: PT10M
+              maxDeliveryCount:
+                type: integer
+                description: Maximum delivery count before dead-lettering
+                default: 10
+              enableBatchedOperations:
+                type: boolean
+                description: Whether batched operations are enabled
+                default: true
+              status:
+                type: string
+                description: Status of the queue
+                enum:
+                  - Active
+                  - Disabled
+                  - SendDisabled
+                  - ReceiveDisabled
+                default: Active
+              enablePartitioning:
+                type: boolean
+                description: Whether partitioning is enabled
+                default: true
+              maxMessageSizeInKilobytes:
+                type: integer
+                description: Maximum message size in kilobytes
+                default: 1024
+        topics:
+          type: array
+          description: Configuration for topics in the Service Bus namespace
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the topic
+              defaultMessageTimeToLive:
+                type: string
+                description: Default message time to live (ISO 8601 duration)
+                default: P14D
+              maxSizeInMegabytes:
+                type: integer
+                description: Maximum size of the topic in megabytes
+                default: 1024
+              requiresDuplicateDetection:
+                type: boolean
+                description: Whether the topic requires duplicate detection
+                default: false
+              duplicateDetectionHistoryTimeWindow:
+                type: string
+                description: Duplicate detection history time window (ISO 8601 duration)
+                default: PT10M
+              enableBatchedOperations:
+                type: boolean
+                description: Whether batched operations are enabled
+                default: true
+              status:
+                type: string
+                description: Status of the topic
+                enum:
+                  - Active
+                  - Disabled
+                  - SendDisabled
+                  - ReceiveDisabled
+                default: Active
+              supportOrdering:
+                type: boolean
+                description: Whether message ordering is supported
+                default: true
+              enablePartitioning:
+                type: boolean
+                description: Whether partitioning is enabled
+                default: true
+              maxMessageSizeInKilobytes:
+                type: integer
+                description: Maximum message size in kilobytes
+                default: 1024
+              subscriptions:
+                type: array
+                description: Subscriptions for the topic
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Name of the subscription
+                    lockDuration:
+                      type: string
+                      description: Lock duration for the subscription (ISO 8601 duration)
+                      default: PT1M
+                    requiresSession:
+                      type: boolean
+                      description: Whether the subscription requires sessions
+                      default: false
+                    defaultMessageTimeToLive:
+                      type: string
+                      description: Default message time to live (ISO 8601 duration)
+                      default: P14D
+                    deadLetteringOnMessageExpiration:
+                      type: boolean
+                      description: Whether messages should be dead-lettered on expiration
+                      default: false
+                    maxDeliveryCount:
+                      type: integer
+                      description: Maximum delivery count before dead-lettering
+                      default: 10
+                    enableBatchedOperations:
+                      type: boolean
+                      description: Whether batched operations are enabled
+                      default: true
+                    status:
+                      type: string
+                      description: Status of the subscription
+                      enum:
+                        - Active
+                        - Disabled
+                        - SendDisabled
+                        - ReceiveDisabled
+                      default: Active
+                    forwardTo:
+                      type: string
+                      description: Queue or topic to forward messages to
+                    forwardDeadLetteredMessagesTo:
+                      type: string
+                      description: Queue or topic to forward dead-lettered messages to
+        authorizationRules:
+          type: array
+          description: Authorization rules for the Service Bus namespace, queues, and topics
+          items:
+            type: object
+            required:
+              - name
+              - parentResourceType
+              - rights
+            properties:
+              name:
+                type: string
+                description: Name of the authorization rule
+              parentResourceType:
+                type: string
+                description: Type of the parent resource
+                enum:
+                  - namespaces
+                  - queues
+                  - topics
+              parentResourceName:
+                type: string
+                description: Name of the parent resource (queue or topic name, empty for namespace level)
+                default: ''
+              rights:
+                type: array
+                description: Rights to be granted by this rule
+                items:
+                  type: string
+                  enum:
+                    - Listen
+                    - Send
+                    - Manage
+
+    # Storage Account configuration
+    storageAccount:
+      type: object
+      description: Storage Account configuration
+      properties:
+        storageAccountName:
+          type: string
+          description: Name of the storage account (will be suffixed with environment and random string)
+        skuName:
+          type: string
+          description: The SKU name of the storage account
+          enum:
+            - Standard_LRS
+            - Standard_GRS
+            - Standard_RAGRS
+            - Standard_ZRS
+            - Premium_LRS
+            - Premium_ZRS
+            - Standard_GZRS
+            - Standard_RAGZRS
+          default: Standard_GRS
+        skuTier:
+          type: string
+          description: The SKU tier
+          enum: [Standard, Premium]
+          default: Standard
+        kind:
+          type: string
+          description: The kind of storage account
+          enum: [Storage, StorageV2, BlobStorage, FileStorage, BlockBlobStorage]
+          default: StorageV2
+        accessTier:
+          type: string
+          description: The access tier for BlobStorage and GPv2 accounts
+          enum: [Hot, Cool]
+          default: Hot
+        isHnsEnabled:
+          type: boolean
+          description: Enable hierarchical namespace (Azure Data Lake Storage Gen2)
+          default: false
+        allowBlobPublicAccess:
+          type: boolean
+          description: Allow or disallow public access to all blobs or containers
+          default: false
+        allowedCopyScope:
+          type: string
+          description: Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links
+          default: AAD
+        minimumTlsVersion:
+          type: string
+          description: The minimum TLS version for requests to storage
+          enum: [TLS1_0, TLS1_1, TLS1_2]
+          default: TLS1_2
+        networkRuleSet:
+          type: object
+          description: Network rule set configuration
+          properties:
+            defaultAction:
+              type: string
+              enum: [Allow, Deny]
+              default: Deny
+            bypass:
+              type: string
+              description: Traffic that bypasses network rules
+              default: AzureServices
+            ipRules:
+              type: array
+              description: List of IP rules
+              items:
+                type: object
+                properties:
+                  value:
+                    type: string
+                    description: IP address or CIDR range
+                  action:
+                    type: string
+                    enum: [Allow]
+                    default: Allow
+            virtualNetworkRules:
+              type: array
+              description: List of virtual network rules
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Resource ID of the subnet
+                  action:
+                    type: string
+                    enum: [Allow]
+                    default: Allow
+        privateEndpoints:
+          type: array
+          description: List of private endpoints to create
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the private endpoint
+              subnetId:
+                type: string
+                description: Resource ID of the subnet for the private endpoint
+              groupIds:
+                type: array
+                description: List of group IDs to enable on the private endpoint
+                items:
+                  type: string
+                  enum: [blob, file, queue, table]
+        blobContainers:
+          type: array
+          description: List of blob containers to create
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the container
+              publicAccess:
+                type: string
+                enum: [None, Container, Blob]
+                default: None
+              metadata:
+                type: object
+                additionalProperties:
+                  type: string
+        fileShares:
+          type: array
+          description: List of file shares to create
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the file share
+              quotaInGB:
+                type: integer
+                description: Quota in GB for the file share
+                minimum: 1
+                maximum: 102400
+              enabledProtocols:
+                type: string
+                enum: [SMB, NFS]
+                default: SMB
+              metadata:
+                type: object
+                additionalProperties:
+                  type: string
+        queues:
+          type: array
+          description: List of queues to create
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the queue
+              metadata:
+                type: object
+                additionalProperties:
+                  type: string
+        tables:
+          type: array
+          description: List of tables to create
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Name of the table
+        diagnostics:
+          type: object
+          description: Diagnostics settings for the storage account
+          properties:
+            logAnalyticsWorkspaceId:
+              type: string
+              description: Resource ID of the Log Analytics workspace
+            enableAllMetrics:
+              type: boolean
+              description: Enable all available metrics
+              default: true
+            enableAllLogs:
+              type: boolean
+              description: Enable all available logs
+              default: true
+            metricsRetentionInDays:
+              type: integer
+              description: Retention in days for metrics (0 = unlimited)
+              minimum: 0
+              maximum: 365
+              default: 30
+            logsRetentionInDays:
+              type: integer
+              description: Retention in days for logs (0 = unlimited)
+              minimum: 0
+              maximum: 365
+              default: 30
+
+    # .NET Aspire configuration
+    aspire:
+      type: object
+      description: .NET Aspire deployment configuration
+      properties:
+        containerAppEnvironment:
+          type: object
+          description: Container Apps Environment configuration
+          properties:
+            name:
+              type: string
+              description: Name of the Container Apps Environment
+              minLength: 2
+              maxLength: 60
+            internalLoadBalancerEnabled:
+              type: boolean
+              description: Enable internal load balancer for the environment
+              default: false
+            logAnalyticsWorkspaceId:
+              type: string
+              description: Resource ID of the Log Analytics workspace for container logs
+            infrastructureSubnetId:
+              type: string
+              description: Resource ID of the subnet for the Container Apps Environment
+            dockerBridgeCidr:
+              type: string
+              description: CIDR notation IP range for Docker bridge network
+              pattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])/([0-9]|[1-2][0-9]|3[0-2])$'
+            platformReservedCidr:
+              type: string
+              description: IP range for platform services (CIDR notation)
+              pattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])/([0-9]|[1-2][0-9]|3[0-2])$'
+            platformReservedDnsIp:
+              type: string
+              description: IP address for the internal DNS server
+              pattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'
+            zoneRedundant:
+              type: boolean
+              description: Enable zone redundancy for the environment
+              default: false
+        
+        containerApps:
+          type: array
+          description: List of container apps to deploy
+          items:
+            type: object
+            required:
+              - name
+              - containerImage
+            properties:
+              name:
+                type: string
+                description: Name of the container app
+                minLength: 2
+                maxLength: 32
+                pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+              containerImage:
+                type: string
+                description: Container image repository and name
+              containerImageTag:
+                type: string
+                description: Container image tag
+                default: latest
+              containerPort:
+                type: integer
+                description: Port that the container exposes
+                minimum: 1
+                maximum: 65535
+                default: 80
+              replicas:
+                type: integer
+                description: Number of replicas to deploy
+                minimum: 0
+                maximum: 100
+                default: 1
+              resources:
+                type: object
+                description: Resource requirements for the container
+                properties:
+                  cpu:
+                    type: number
+                    description: CPU cores (can be less than 1, e.g., 0.5)
+                    minimum: 0.25
+                    maximum: 8
+                  memory:
+                    type: string
+                    description: Memory in Gi (e.g., '1Gi') or Mi (e.g., '512Mi')
+                    pattern: '^\d+[MG]i$'
+              env:
+                type: array
+                description: Environment variables
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Environment variable name
+                    value:
+                      type: string
+                      description: Environment variable value
+                    secretRef:
+                      type: string
+                      description: Reference to a secret (mutually exclusive with value)
+              secrets:
+                type: array
+                description: Secrets to be used as environment variables
+                items:
+                  type: object
+                  required:
+                    - name
+                    - value
+                  properties:
+                    name:
+                      type: string
+                      description: Secret name
+                    value:
+                      type: string
+                      description: Secret value
+              ingress:
+                type: object
+                description: Ingress configuration (null for no ingress)
+                properties:
+                  external:
+                    type: boolean
+                    description: Enable external access
+                    default: true
+                  targetPort:
+                    type: integer
+                    description: Target port for ingress
+                    minimum: 1
+                    maximum: 65535
+                  allowInsecure:
+                    type: boolean
+                    description: Allow insecure traffic
+                    default: false
+                  traffic:
+                    type: array
+                    description: Traffic routing rules
+                    items:
+                      type: object
+                      properties:
+                        latestRevision:
+                          type: boolean
+                          description: Route to the latest revision
+                        revisionName:
+                          type: string
+                          description: Route to a specific revision
+                        weight:
+                          type: integer
+                          description: Traffic weight (0-100)
+                          minimum: 0
+                          maximum: 100
+              registry:
+                type: object
+                description: Container registry configuration
+                properties:
+                  server:
+                    type: string
+                    description: Registry server URL
+                  username:
+                    type: string
+                    description: Registry username
+                  passwordSecretRef:
+                    type: string
+                    description: Reference to a secret containing the registry password
+
+    # Existing module configurations from the JSON schema
+    apiManagement:
+      type: object
+      description: API Management configuration
+      properties:
+        operationalMode:
+          type: string
+          description: APIM operational mode - 'shared' uses existing instance, 'dedicated' creates new one
+          enum:
+            - shared
+            - dedicated
+          default: dedicated
+        sharedApimResourceId:
+          type: string
+          description: Resource ID of the shared APIM instance (required when operationalMode is 'shared')
+        sku:
+          type: string
+          description: API Management SKU (used only in dedicated mode)
+          enum:
+            - Developer
+            - Basic
+            - Standard
+            - Premium
+          default: Developer
+        capacity:
+          type: integer
+          description: API Management capacity (used only in dedicated mode)
+          minimum: 1
+          default: 1
+        publisherEmail:
+          type: string
+          description: Publisher email for API Management (used only in dedicated mode)
+        publisherName:
+          type: string
+          description: Publisher name for API Management (used only in dedicated mode)
+        apis:
+          type: array
+          description: APIs to register with APIM
+          items:
+            type: object
+            required:
+              - name
+              - path
+            properties:
+              name:
+                type: string
+                description: Name of the API
+              path:
+                type: string
+                description: Path segment for the API
+              version:
+                type: string
+                description: API version (used in path for shared mode)
+                default: v1
+              specificationFormat:
+                type: string
+                description: API specification format
+                enum:
+                  - openapi+json
+                  - openapi+json-link
+                  - openapi
+                  - swagger-json
+                  - swagger-link-json
+                  - wadl-link-json
+                  - wadl-xml
+                  - wsdl
+                  - wsdl-link
+                default: openapi+json
+              specificationValue:
+                type: string
+                description: API specification content or URI depending on the format
+              productName:
+                type: string
+                description: Product name to associate the API with (optional)
+              policies:
+                type: object
+                description: API policies
+                properties:
+                  cors:
+                    type: object
+                    description: CORS policy configuration
+                    properties:
+                      allowedOrigins:
+                        type: array
+                        description: Allowed origins for CORS
+                        items:
+                          type: string
+                      allowedMethods:
+                        type: array
+                        description: Allowed HTTP methods for CORS
+                        items:
+                          type: string
+                          enum:
+                            - GET
+                            - POST
+                            - PUT
+                            - DELETE
+                            - PATCH
+                            - OPTIONS
+                            - HEAD
+                      allowedHeaders:
+                        type: array
+                        description: Allowed headers for CORS
+                        items:
+                          type: string
+                      exposeHeaders:
+                        type: array
+                        description: Headers to expose in CORS responses
+                        items:
+                          type: string
+                  rateLimit:
+                    type: object
+                    description: Rate limiting policy configuration
+                    properties:
+                      callsPerSecond:
+                        type: integer
+                        description: Maximum calls per second
+                        minimum: 1
+                      renewalPeriod:
+                        type: integer
+                        description: Renewal period in seconds
+                        minimum: 1
+                      counter:
+                        type: string
+                        description: Counter key for rate limiting
+    appService:
+      type: object
+      description: App Service configuration
+      properties:
+        name:
+          type: string
+          description: Name of the App Service
+        sku:
+          type: string
+          description: App Service Plan SKU
+          default: B1
+        runtimeStack:
+          type: string
+          description: Runtime stack for the App Service
+          default: DOTNETCORE|6.0
+        systemAssignedIdentity:
+          type: boolean
+          description: Enable system-assigned managed identity
+          default: false
+        userAssignedIdentities:
+          type: object
+          description: User-assigned managed identities to assign to the App Service
+        appSettings:
+          type: array
+          description: App settings for the App Service
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+                description: App setting name
+              value:
+                type: string
+                description: App setting value
+        connectionStrings:
+          type: array
+          description: Connection strings for the App Service
+          items:
+            type: object
+            required:
+              - name
+              - value
+              - type
+            properties:
+              name:
+                type: string
+                description: Connection string name
+              value:
+                type: string
+                description: Connection string value
+              type:
+                type: string
+                description: Connection string type
+                enum:
+                  - SQLServer
+                  - SQLAzure
+                  - Custom
+                  - MySql
+                  - PostgreSQL
+                  - RedisCache
+        diagnostics:
+          type: object
+          description: Diagnostic settings for the App Service
+          properties:
+            enabled:
+              type: boolean
+              description: Enable diagnostic settings
+              default: false
+            logAnalyticsWorkspaceId:
+              type: string
+              description: Resource ID of the Log Analytics workspace for diagnostics
+            diagnosticsStorageAccountId:
+              type: string
+              description: Resource ID of the Storage Account for diagnostics
+            eventHubAuthorizationRuleId:
+              type: string
+              description: Resource ID of the Event Hub for diagnostics
+            eventHubNamespaceId:
+              type: string
+              description: Resource ID of the Event Hub Namespace for diagnostics
+            logCategories:
+              type: array
+              description: Log categories to enable for diagnostics
+              items:
+                type: string
+            retentionDays:
+              type: integer
+              description: Retention days for diagnostic logs
+              default: 30
+        deploymentSlots:
+          type: array
+          description: Deployment slots for the App Service
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: Name of the deployment slot
+              appSettings:
+                type: array
+                description: App settings for the deployment slot
+                items:
+                  type: object
+                  required:
+                    - name
+                    - value
+                  properties:
+                    name:
+                      type: string
+                      description: App setting name
+                    value:
+                      type: string
+                      description: App setting value
+              autoSwapSlotName:
+                type: string
+                description: Name of the slot to auto swap with
+        stickySettings:
+          type: object
+          description: Settings that should be sticky between slot swaps
+          properties:
+            appSettingNames:
+              type: array
+              description: App setting names that should be sticky
+              items:
+                type: string
+            connectionStringNames:
+              type: array
+              description: Connection string names that should be sticky
+              items:
+                type: string
+            azureStorageConfigNames:
+              type: array
+              description: Azure storage config names that should be sticky
+              items:
+                type: string
+    functionApp:
+      type: object
+      description: Function App configuration
+      properties:
+        runtime:
+          type: string
+          description: Function App runtime
+          enum:
+            - dotnet
+            - node
+            - python
+            - java
+          default: dotnet
+        sku:
+          type: string
+          description: Function App hosting plan SKU
+          enum:
+            - Y1
+            - B1
+            - S1
+            - P1V2
+          default: Y1
+        appSettings:
+          type: array
+          description: Additional app settings for the Function App
+          items:
+            type: object
+            required:
+              - name
+              - value
+            properties:
+              name:
+                type: string
+                description: App setting name
+              value:
+                type: string
+                description: App setting value
+    sqlDatabase:
+      type: object
+      description: SQL Database configuration
+      properties:
+        serverName:
+          type: string
+          description: Name of the SQL Server
+        databaseName:
+          type: string
+          description: Name of the SQL Database
+        administratorLogin:
+          type: string
+          description: SQL Server administrator login
+        administratorLoginPassword:
+          type: string
+          description: SQL Server administrator password
+          format: password
+        sku:
+          type: object
+          description: SQL Database SKU
+          properties:
+            name:
+              type: string
+              description: SKU name
+              default: Basic
+            tier:
+              type: string
+              description: SKU tier
+              default: Basic
+            capacity:
+              type: integer
+              description: SKU capacity
+              default: 5
+        maxSizeBytes:
+          type: integer
+          description: Maximum size of the database in bytes
+          default: 2147483648
+        zoneRedundant:
+          type: boolean
+          description: Whether the database is zone redundant
+          default: false
+        enableAuditing:
+          type: boolean
+          description: Enable SQL auditing
+          default: false
+        enableThreatDetection:
+          type: boolean
+          description: Enable threat detection
+          default: false
+        enableTransparentDataEncryption:
+          type: boolean
+          description: Enable transparent data encryption
+          default: true
+        firewallRules:
+          type: array
+          description: Firewall rules for the SQL Server
+          items:
+            type: object
+            required:
+              - name
+              - startIpAddress
+              - endIpAddress
+            properties:
+              name:
+                type: string
+                description: Name of the firewall rule
+              startIpAddress:
+                type: string
+                description: Start IP address for the firewall rule
+                format: ipv4
+              endIpAddress:
+                type: string
+                description: End IP address for the firewall rule
+                format: ipv4
+        virtualNetworkRules:
+          type: array
+          description: Virtual network rules for the SQL Server
+          items:
+            type: object
+            required:
+              - name
+              - subnetId
+            properties:
+              name:
+                type: string
+                description: Name of the virtual network rule
+              subnetId:
+                type: string
+                description: Resource ID of the subnet
+        privateEndpoint:
+          type: object
+          description: Private endpoint configuration for the SQL Server
+          properties:
+            enabled:
+              type: boolean
+              description: Enable private endpoint
+              default: false
+            subnetId:
+              type: string
+              description: Resource ID of the subnet for the private endpoint
+            privateDnsZoneId:
+              type: string
+              description: Resource ID of the private DNS zone
+
+# Bicep settings
+bicepSettings:
+  type: object
+  description: Bicep linter and formatting settings
+  properties:
+    linterEnabled:
+      type: boolean
+      description: Enable Bicep linter
+      default: true
+    linterRules:
+      type: object
+      description: Bicep linter rules
+      additionalProperties:
+        type: string
+        enum:
+          - off
+          - warn
+          - error
+    formattingEnabled:
+      type: boolean
+      description: Enable Bicep formatter
+      default: true
+    formattingOptions:
+      type: object
+      description: Bicep formatter options
+      properties:
+        indentSize:
+          type: integer
+          description: Indent size
+          default: 2
+        newLineKind:
+          type: string
+          description: New line kind
+          enum:
+            - lf
+            - crlf
+          default: lf

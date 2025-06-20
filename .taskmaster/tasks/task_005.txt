@@ -1,0 +1,80 @@
+# Task ID: 5
+# Title: Implement Core Module: keyVault.bicep
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create the Key Vault Bicep module with access policies, secrets, and necessary configurations.
+# Details:
+1. Create keyVault.bicep with parameters:
+   ```bicep
+   param keyVaultName string
+   param location string = resourceGroup().location
+   param enabledForDeployment bool = false
+   param enabledForTemplateDeployment bool = true
+   param enabledForDiskEncryption bool = false
+   param accessPolicies array = []
+   param secrets array = []
+   
+   resource keyVault 'Microsoft.KeyVault/vaults@2021-11-01-preview' = {
+     name: keyVaultName
+     location: location
+     properties: {
+       enabledForDeployment: enabledForDeployment
+       enabledForTemplateDeployment: enabledForTemplateDeployment
+       enabledForDiskEncryption: enabledForDiskEncryption
+       tenantId: subscription().tenantId
+       sku: {
+         name: 'standard'
+         family: 'A'
+       }
+       accessPolicies: accessPolicies
+     }
+   }
+   
+   @batchSize(1)
+   resource keyVaultSecrets 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = [for secret in secrets: {
+     parent: keyVault
+     name: secret.name
+     properties: {
+       value: secret.value
+     }
+   }]
+   ```
+2. Add support for managed identity access policies
+3. Implement network ACL configuration
+4. Add purge protection and soft-delete configuration
+5. Support for certificate and key management
+6. Expose outputs for Key Vault URI and resource ID
+
+# Test Strategy:
+1. Deploy to test environment with minimal configuration
+2. Verify access policies are correctly applied
+3. Test secret creation and retrieval
+4. Validate managed identity access
+5. Test network ACL restrictions
+
+# Subtasks:
+## 1. Create basic Key Vault Bicep module structure [pending]
+### Dependencies: None
+### Description: Set up the foundational structure for the Key Vault Bicep module including parameters, variables, and the main resource definition.
+### Details:
+Create a new Bicep file for Key Vault with essential parameters such as name, location, SKU, tenant ID, and resource tags. Define the core Key Vault resource with required properties. Include output values for the Key Vault ID, name, and URI. Implement proper documentation using comments.
+
+## 2. Implement access policies configuration [pending]
+### Dependencies: 5.1
+### Description: Add support for configuring access policies to control permissions for different identities accessing the Key Vault.
+### Details:
+Create parameters to accept access policy configurations including object IDs, application IDs, and permission sets for keys, secrets, and certificates. Implement the accessPolicies property in the Key Vault resource. Add validation to ensure proper formatting of access policy inputs. Include examples of common access policy scenarios in the documentation.
+
+## 3. Add secret management capabilities [pending]
+### Dependencies: 5.1
+### Description: Implement functionality to create and manage secrets within the Key Vault during deployment.
+### Details:
+Create a parameter to accept an array of secrets to be created. Implement a loop to create each secret as a child resource of the Key Vault. Add support for setting content type, expiration date, and activation date for secrets. Include proper error handling and validation for secret names and values. Document best practices for secret management.
+
+## 4. Configure network and security settings [pending]
+### Dependencies: 5.1
+### Description: Implement network access rules, firewall settings, and advanced security features for the Key Vault.
+### Details:
+Add parameters for network ACLs including IP rules, virtual network rules, and default action (Allow/Deny). Implement soft-delete and purge protection configuration options. Add support for enabling Azure RBAC for authorization. Configure private endpoint connections if needed. Include parameters for enabling advanced threat protection. Document security best practices and compliance considerations.
+

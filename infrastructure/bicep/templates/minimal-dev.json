@@ -1,0 +1,63 @@
+{
+  "$schema": "../bicep.config.schema.json",
+  "metadata": {
+    "projectName": "mindev",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "dev",
+    "project": "MinimalDev",
+    "owner": "Development Team"
+  },
+  "featureToggles": {
+    "enableApiManagement": false,
+    "enableFunctionApp": true,
+    "enableSignalR": false,
+    "enableRedisCache": false,
+    "enableKeyVault": true,
+    "enableOpenAI": false,
+    "enableContainerRegistry": false,
+    "enableStorageAccount": true,
+    "enableContainerInstance": false,
+    "enableSqlDatabase": false
+  },
+  "moduleConfigurations": {
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "Y1",
+      "appSettings": [
+        {
+          "name": "FUNCTIONS_WORKER_RUNTIME",
+          "value": "dotnet"
+        },
+        {
+          "name": "FUNCTIONS_EXTENSION_VERSION",
+          "value": "~4"
+        }
+      ]
+    },
+    "keyVault": {
+      "sku": "standard",
+      "enabledForTemplateDeployment": true,
+      "enablePurgeProtection": false,
+      "softDeleteRetentionInDays": 7
+    },
+    "storageAccount": {
+      "sku": "Standard_LRS",
+      "kind": "StorageV2",
+      "accessTier": "Hot"
+    }
+  },
+  "bicepSettings": {
+    "linterEnabled": true,
+    "linterRules": {
+      "no-unused-params": "Warning",
+      "no-unused-vars": "Warning"
+    },
+    "formatting": {
+      "indentSize": 2,
+      "insertFinalNewline": true
+    }
+  }
+}

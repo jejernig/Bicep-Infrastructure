@@ -1,0 +1,105 @@
+# Task ID: 6
+# Title: Implement Core Module: sqlDatabase.bicep
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create the SQL Database Bicep module with server, database, firewall rules, and necessary configurations.
+# Details:
+1. Create sqlDatabase.bicep with parameters:
+   ```bicep
+   param sqlServerName string
+   param sqlDatabaseName string
+   param location string = resourceGroup().location
+   param administratorLogin string
+   @secure()
+   param administratorLoginPassword string
+   param databaseSku object = {
+     name: 'Basic'
+     tier: 'Basic'
+   }
+   param allowAzureIPs bool = true
+   param firewallRules array = []
+   
+   resource sqlServer 'Microsoft.Sql/servers@2021-11-01-preview' = {
+     name: sqlServerName
+     location: location
+     properties: {
+       administratorLogin: administratorLogin
+       administratorLoginPassword: administratorLoginPassword
+       version: '12.0'
+     }
+   }
+   
+   resource sqlDatabase 'Microsoft.Sql/servers/databases@2021-11-01-preview' = {
+     parent: sqlServer
+     name: sqlDatabaseName
+     location: location
+     sku: databaseSku
+     properties: {
+       collation: 'SQL_Latin1_General_CP1_CI_AS'
+     }
+   }
+   
+   resource allowAllAzureIPs 'Microsoft.Sql/servers/firewallRules@2021-11-01-preview' = if (allowAzureIPs) {
+     parent: sqlServer
+     name: 'AllowAllAzureIPs'
+     properties: {
+       startIpAddress: '0.0.0.0'
+       endIpAddress: '0.0.0.0'
+     }
+   }
+   
+   @batchSize(1)
+   resource firewallRule 'Microsoft.Sql/servers/firewallRules@2021-11-01-preview' = [for rule in firewallRules: {
+     parent: sqlServer
+     name: rule.name
+     properties: {
+       startIpAddress: rule.startIpAddress
+       endIpAddress: rule.endIpAddress
+     }
+   }]
+   ```
+2. Add support for Azure AD authentication
+3. Implement geo-replication configuration
+4. Add elastic pool support
+5. Configure auditing and threat detection
+6. Expose outputs for connection string, server FQDN, etc.
+
+# Test Strategy:
+1. Deploy to test environment with minimal configuration
+2. Verify database creation and connectivity
+3. Test firewall rules configuration
+4. Validate Azure AD authentication
+5. Test connection string output format
+
+# Subtasks:
+## 1. Create SQL Server Bicep Module [pending]
+### Dependencies: None
+### Description: Develop the core Bicep module for SQL Server provisioning with configurable parameters
+### Details:
+Create a Bicep module that provisions an Azure SQL Server with configurable parameters including server name, location, and resource tags. Include parameters for administrator login credentials with secure string handling. Implement resource outputs for server ID, name, and FQDN.
+
+## 2. Implement SQL Database Configuration [pending]
+### Dependencies: 6.1
+### Description: Add SQL Database resource definition with configurable sizing and performance options
+### Details:
+Extend the Bicep module to include SQL Database creation with parameters for database name, SKU (Basic, Standard, Premium), max size, elastic pool options, and collation settings. Implement conditional deployment logic for different service tiers and performance levels. Include outputs for database connection information.
+
+## 3. Configure Firewall Rules and Network Security [pending]
+### Dependencies: 6.1
+### Description: Implement firewall rules and network security configurations for SQL resources
+### Details:
+Add parameters and resources for SQL firewall rules including options for Azure services access, specific IP ranges, and subnet access. Implement virtual network rule configurations for private endpoints. Create parameters to toggle 'Allow Azure Services' access and public network access flags with appropriate defaults for security.
+
+## 4. Implement Authentication Options [pending]
+### Dependencies: 6.1
+### Description: Add support for multiple authentication methods including AAD and SQL authentication
+### Details:
+Extend the module to support both SQL authentication and Azure Active Directory authentication. Include parameters for AAD admin configuration, managed identity integration, and conditional deployment of authentication methods. Implement secure parameter handling for credentials and document security best practices.
+
+## 5. Create Connection String Management [pending]
+### Dependencies: 6.2, 6.4
+### Description: Implement connection string output and Key Vault integration for secure storage
+### Details:
+Generate and output connection strings for different authentication methods. Implement optional Key Vault integration to store connection strings as secrets. Create parameters to control connection string format (ADO.NET, JDBC, ODBC) and include conditional logic to handle different authentication methods in the connection strings. Add documentation for connection string usage patterns.
+

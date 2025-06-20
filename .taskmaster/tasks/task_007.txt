@@ -1,0 +1,108 @@
+# Task ID: 7
+# Title: Implement Core Module: serviceBus.bicep
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create the Service Bus Bicep module with namespace, queues, topics, and necessary configurations.
+# Details:
+1. Create serviceBus.bicep with parameters:
+   ```bicep
+   param namespaceName string
+   param location string = resourceGroup().location
+   param sku string = 'Standard'
+   param queues array = []
+   param topics array = []
+   
+   resource namespace 'Microsoft.ServiceBus/namespaces@2021-11-01' = {
+     name: namespaceName
+     location: location
+     sku: {
+       name: sku
+       tier: sku
+     }
+   }
+   
+   @batchSize(1)
+   resource queue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' = [for q in queues: {
+     parent: namespace
+     name: q.name
+     properties: {
+       lockDuration: contains(q, 'lockDuration') ? q.lockDuration : 'PT1M'
+       maxSizeInMegabytes: contains(q, 'maxSizeInMegabytes') ? q.maxSizeInMegabytes : 1024
+       requiresDuplicateDetection: contains(q, 'requiresDuplicateDetection') ? q.requiresDuplicateDetection : false
+       deadLetteringOnMessageExpiration: contains(q, 'deadLetteringOnMessageExpiration') ? q.deadLetteringOnMessageExpiration : false
+     }
+   }]
+   
+   @batchSize(1)
+   resource topic 'Microsoft.ServiceBus/namespaces/topics@2021-11-01' = [for t in topics: {
+     parent: namespace
+     name: t.name
+     properties: {
+       maxSizeInMegabytes: contains(t, 'maxSizeInMegabytes') ? t.maxSizeInMegabytes : 1024
+       requiresDuplicateDetection: contains(t, 'requiresDuplicateDetection') ? t.requiresDuplicateDetection : false
+     }
+   }]
+   
+   @batchSize(1)
+   resource subscription 'Microsoft.ServiceBus/namespaces/topics/subscriptions@2021-11-01' = [for s in flatten([
+     for topicIndex in range(0, length(topics)): [
+       for sub in topics[topicIndex].subscriptions ?? []: {
+         topicName: topics[topicIndex].name
+         name: sub.name
+         properties: sub
+       }
+     ]
+   ]): {
+     parent: topic[indexOf(topics, first(topics, t => t.name == s.topicName))]
+     name: s.name
+     properties: {
+       lockDuration: contains(s.properties, 'lockDuration') ? s.properties.lockDuration : 'PT1M'
+       maxDeliveryCount: contains(s.properties, 'maxDeliveryCount') ? s.properties.maxDeliveryCount : 10
+     }
+   }]
+   ```
+2. Add support for authorization rules
+3. Implement private endpoint configuration
+4. Add disaster recovery configuration
+5. Configure message capture settings
+6. Expose outputs for connection strings, primary/secondary keys, etc.
+
+# Test Strategy:
+1. Deploy to test environment with minimal configuration
+2. Verify namespace, queue, and topic creation
+3. Test authorization rules and access
+4. Validate subscription creation and configuration
+5. Test connection string output format
+
+# Subtasks:
+## 1. Create Service Bus Namespace Bicep Module [pending]
+### Dependencies: None
+### Description: Develop the core Bicep module for creating Azure Service Bus namespaces with configurable SKU, capacity, and zone redundancy options.
+### Details:
+Create a Bicep module that defines the Service Bus namespace resource with parameters for name, location, SKU (Basic, Standard, Premium), capacity, zone redundancy, and tags. Include support for private endpoints and network rules if applicable. Implement proper output variables for the namespace ID and endpoint.
+
+## 2. Implement Queue Configuration Module [pending]
+### Dependencies: 7.1
+### Description: Create a submodule for Service Bus queues with support for all queue properties and dead-letter configuration.
+### Details:
+Develop a Bicep module for queue creation that supports parameters like lock duration, max size, TTL, duplicate detection, session support, and dead-letter settings. The module should be able to create multiple queues based on an array input and properly nest under the namespace resource. Include authorization rules specific to queues.
+
+## 3. Implement Topic and Subscription Management [pending]
+### Dependencies: 7.1
+### Description: Create modules for topics and their subscriptions with support for filtering rules and forwarding.
+### Details:
+Develop Bicep modules for topics and subscriptions that support all configuration options including auto-delete, TTL, and forwarding. Implement subscription filtering rules (SQL filter, correlation filter) and dead-letter settings. Design the module to handle dynamic creation of multiple subscriptions under each topic using array inputs.
+
+## 4. Implement Authorization Rules Management [pending]
+### Dependencies: 7.1, 7.2, 7.3
+### Description: Create a module component for managing SAS authorization rules at namespace, queue, and topic levels.
+### Details:
+Develop the authorization rules component that can be applied at namespace, queue, or topic level. Support different rights combinations (Send, Listen, Manage) and handle the creation of multiple rules. Ensure proper nesting of resources and parameter validation for the different scopes of authorization.
+
+## 5. Implement Connection String Outputs and Documentation [pending]
+### Dependencies: 7.1, 7.2, 7.3, 7.4
+### Description: Add secure handling of connection strings as outputs and create comprehensive documentation.
+### Details:
+Implement secure output of connection strings and keys for the created resources. Create comprehensive documentation with examples for different scenarios: basic namespace, queues with authorization, topics with subscriptions, etc. Include parameter tables explaining all possible configuration options and their default values. Add validation decorators for all parameters.
+

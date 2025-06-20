@@ -1,0 +1,173 @@
+{
+  "$schema": "./bicep.config.schema.json",
+  "metadata": {
+    "projectName": "phantomline",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "dev",
+    "project": "PhantomLine",
+    "owner": "Infrastructure Team",
+    "costCenter": "12345"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableSignalR": true,
+    "enableRedisCache": true,
+    "enableKeyVault": true,
+    "enableOpenAI": true,
+    "enableContainerRegistry": true,
+    "enableStorageAccount": true,
+    "enableContainerInstance": true,
+    "enableSqlDatabase": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "sku": "Developer",
+      "capacity": 1,
+      "publisherEmail": "admin@example.com",
+      "publisherName": "PhantomLine"
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "Y1",
+      "appSettings": [
+        {
+          "name": "FUNCTIONS_WORKER_RUNTIME",
+          "value": "dotnet"
+        },
+        {
+          "name": "FUNCTIONS_EXTENSION_VERSION",
+          "value": "~4"
+        }
+      ]
+    },
+    "signalR": {
+      "sku": "Standard",
+      "capacity": 1,
+      "serviceMode": "Default"
+    },
+    "redisCache": {
+      "sku": "Standard",
+      "capacity": 1,
+      "enableNonSslPort": false
+    },
+    "keyVault": {
+      "sku": "standard",
+      "enabledForDeployment": false,
+      "enabledForTemplateDeployment": true,
+      "enabledForDiskEncryption": false,
+      "enablePurgeProtection": true,
+      "softDeleteRetentionInDays": 90
+    },
+    "openAI": {
+      "sku": "S0",
+      "deployments": [
+        {
+          "name": "gpt-35",
+          "model": "gpt-35-turbo",
+          "version": "0613",
+          "capacity": 1
+        }
+      ]
+    },
+    "containerRegistry": {
+      "sku": "Standard",
+      "adminUserEnabled": true
+    },
+    "storageAccount": {
+      "sku": "Standard_LRS",
+      "kind": "StorageV2",
+      "accessTier": "Hot",
+      "fileShares": [
+        {
+          "name": "mcp-graph-data",
+          "quota": 100
+        },
+        {
+          "name": "mcp-graph-logs",
+          "quota": 50
+        },
+        {
+          "name": "mcp-graph-import",
+          "quota": 50
+        }
+      ]
+    },
+    "containerInstance": {
+      "image": "phantomlineacr.azurecr.io/phantomline-mcp-database:latest",
+      "port": 7474,
+      "cpuCores": 2,
+      "memoryInGb": 4,
+      "environmentVariables": [
+        {
+          "name": "NEO4J_AUTH",
+          "secureValue": "neo4j/${keyVault.outputs.keyVaultName}"
+        },
+        {
+          "name": "NEO4J_dbms_memory_heap_initial__size",
+          "value": "1G"
+        },
+        {
+          "name": "NEO4J_dbms_memory_heap_max__size",
+          "value": "2G"
+        },
+        {
+          "name": "NEO4J_dbms_memory_pagecache_size",
+          "value": "1G"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "dev"
+        }
+      ],
+      "volumeMounts": [
+        {
+          "name": "mcp-graph-data",
+          "mountPath": "/data",
+          "shareName": "mcp-graph-data"
+        },
+        {
+          "name": "mcp-graph-logs",
+          "mountPath": "/logs",
+          "shareName": "mcp-graph-logs"
+        },
+        {
+          "name": "mcp-graph-import",
+          "mountPath": "/var/lib/neo4j/import",
+          "shareName": "mcp-graph-import"
+        }
+      ]
+    },
+    "sqlDatabase": {
+      "administratorLogin": "phantomline_admin",
+      "databaseSku": {
+        "name": "Basic",
+        "tier": "Basic"
+      },
+      "allowAzureIPs": true,
+      "firewallRules": [
+        {
+          "name": "AllowDevTeam",
+          "startIpAddress": "203.0.113.0",
+          "endIpAddress": "203.0.113.255"
+        }
+      ]
+    }
+  },
+  "bicepSettings": {
+    "linterEnabled": true,
+    "linterRules": {
+      "no-unused-params": "Warning",
+      "no-unused-vars": "Warning",
+      "prefer-interpolation": "Warning",
+      "secure-parameter-default": "Error"
+    },
+    "formatting": {
+      "indentSize": 2,
+      "insertFinalNewline": true
+    }
+  }
+}

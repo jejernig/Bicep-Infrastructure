@@ -1,0 +1,108 @@
+{
+  "$schema": "../bicep.config.schema.json",
+  "metadata": {
+    "projectName": "stdprod",
+    "environment": "prod",
+    "location": "eastus2"
+  },
+  "tags": {
+    "environment": "prod",
+    "project": "StandardProduction",
+    "owner": "Operations Team",
+    "costCenter": "45678",
+    "criticality": "high"
+  },
+  "featureToggles": {
+    "enableApiManagement": true,
+    "enableFunctionApp": true,
+    "enableSignalR": true,
+    "enableRedisCache": true,
+    "enableKeyVault": true,
+    "enableOpenAI": false,
+    "enableContainerRegistry": true,
+    "enableStorageAccount": true,
+    "enableContainerInstance": false,
+    "enableSqlDatabase": true
+  },
+  "moduleConfigurations": {
+    "apiManagement": {
+      "sku": "Standard",
+      "capacity": 1,
+      "publisherEmail": "admin@example.com",
+      "publisherName": "StandardProduction"
+    },
+    "functionApp": {
+      "runtime": "dotnet",
+      "sku": "S1",
+      "appSettings": [
+        {
+          "name": "FUNCTIONS_WORKER_RUNTIME",
+          "value": "dotnet"
+        },
+        {
+          "name": "FUNCTIONS_EXTENSION_VERSION",
+          "value": "~4"
+        },
+        {
+          "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+          "value": "${appInsights.outputs.instrumentationKey}"
+        }
+      ]
+    },
+    "signalR": {
+      "sku": "Standard",
+      "capacity": 1,
+      "serviceMode": "Default"
+    },
+    "redisCache": {
+      "sku": "Standard",
+      "capacity": 1,
+      "enableNonSslPort": false
+    },
+    "keyVault": {
+      "sku": "standard",
+      "enabledForDeployment": false,
+      "enabledForTemplateDeployment": true,
+      "enabledForDiskEncryption": false,
+      "enablePurgeProtection": true,
+      "softDeleteRetentionInDays": 90
+    },
+    "containerRegistry": {
+      "sku": "Standard",
+      "adminUserEnabled": true
+    },
+    "storageAccount": {
+      "sku": "Standard_GRS",
+      "kind": "StorageV2",
+      "accessTier": "Hot"
+    },
+    "sqlDatabase": {
+      "administratorLogin": "sqladmin",
+      "databaseSku": {
+        "name": "S1",
+        "tier": "Standard"
+      },
+      "allowAzureIPs": true,
+      "firewallRules": [
+        {
+          "name": "AllowOperationsTeam",
+          "startIpAddress": "203.0.113.0",
+          "endIpAddress": "203.0.113.255"
+        }
+      ]
+    }
+  },
+  "bicepSettings": {
+    "linterEnabled": true,
+    "linterRules": {
+      "no-unused-params": "Error",
+      "no-unused-vars": "Error",
+      "prefer-interpolation": "Warning",
+      "secure-parameter-default": "Error"
+    },
+    "formatting": {
+      "indentSize": 2,
+      "insertFinalNewline": true
+    }
+  }
+}

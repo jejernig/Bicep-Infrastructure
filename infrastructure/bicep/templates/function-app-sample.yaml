@@ -1,0 +1,84 @@
+# Function App Sample Configuration
+# This YAML file configures a Function App deployment
+
+# Project metadata
+metadata:
+  projectName: sample-project
+  environment: dev
+  location: eastus
+
+# Resource tags
+tags:
+  environment: development
+  owner: infrastructure-team
+  costCenter: "12345"
+  application: sample-app
+
+# Feature toggles
+featureToggles:
+  enableFunctionApp: true
+  enableAppService: false
+  enableKeyVault: false
+  enableStorageAccount: true
+  enableApiManagement: false
+
+# Module configurations
+moduleConfigurations:
+  functionApp:
+    name: sample-function-app
+    runtime: dotnet
+    runtimeVersion: "6"
+    sku: Y1
+    osType: Windows
+    capacity: 0
+    zoneRedundant: false
+    enableAutoscale: false
+    minInstanceCount: 1
+    maxInstanceCount: 10
+    defaultInstanceCount: 1
+    
+    # Storage account configuration
+    storageAccount:
+      name: samplefunctionappsa
+      sku: Standard_LRS
+      kind: StorageV2
+      enableHierarchicalNamespace: false
+      allowBlobPublicAccess: false
+      allowSharedKeyAccess: true
+      minimumTlsVersion: TLS1_2
+      enableBlobSoftDelete: true
+      blobSoftDeleteRetentionDays: 7
+      enableContainerSoftDelete: true
+      containerSoftDeleteRetentionDays: 7
+      enableShareSoftDelete: true
+      shareSoftDeleteRetentionDays: 7
+    
+    # Application Insights configuration
+    applicationInsights:
+      enabled: true
+      name: sample-function-app-insights
+      applicationType: web
+      retentionInDays: 90
+      dailyQuotaInGB: 1
+    
+    # App settings
+    appSettings:
+      - name: CUSTOM_SETTING_1
+        value: value1
+      - name: CUSTOM_SETTING_2
+        value: value2
+    
+    # Connection strings
+    connectionStrings:
+      - name: SqlConnection
+        value: Server=server.database.windows.net;Database=mydb;User Id=admin;Password=password;
+        type: SQLAzure
+    
+    # Identity configuration
+    identity:
+      systemAssigned: true
+      userAssigned: {}
+      roleAssignments:
+        - roleDefinitionId: /subscriptions/{subscription-id}/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c
+          scope: /subscriptions/{subscription-id}/resourceGroups/{resource-group}
+          description: Contributor role for the function app

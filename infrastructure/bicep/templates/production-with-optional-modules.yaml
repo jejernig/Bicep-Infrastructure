@@ -1,0 +1,202 @@
+# Production Environment with Optional Modules
+# This configuration demonstrates how to use all optional modules in a production environment
+
+# Project metadata
+metadata:
+  projectName: myapp
+  environment: prod
+  location: eastus2
+
+# Resource tags
+tags:
+  environment: production
+  managedBy: bicep
+  costCenter: "12345"
+  businessUnit: "E-Commerce"
+  dataClassification: "Confidential"
+
+# Feature toggles - Enable all optional modules
+featureToggles:
+  enableRedisCache: true
+  enableCdn: true
+  enableFrontDoor: true
+  enableKeyVault: true
+  enableAppInsights: true
+  enableContainerRegistry: true
+  enableContainerInstance: true
+
+# Module configurations
+moduleConfigurations:
+  # Redis Cache configuration
+  redisCache:
+    sku: Premium
+    family: P
+    capacity: 1
+    enableNonSslPort: false
+    minimumTlsVersion: '1.2'
+    redisConfiguration:
+      maxmemory-policy: allkeys-lru
+      maxmemory-reserved: 50
+      maxfragmentationmemory-reserved: 50
+      maxmemory-delta: 50
+    zones: ["1", "2", "3"]
+    replicasPerMaster: 1
+    replicasPerPrimary: 1
+    shardCount: 1
+    tenantSettings: {}
+
+  # CDN configuration
+  cdn:
+    sku: Standard_Microsoft
+    originUrl: myapp-prod.azurewebsites.net
+    originHostHeader: myapp-prod.azurewebsites.net
+    isHttpAllowed: false
+    isHttpsAllowed: true
+    queryStringCachingBehavior: UseQueryString
+    optimizationType: DynamicSiteAcceleration
+    deliveryPolicy:
+      description: "Enhanced policy"
+      rules:
+        - name: "Global"
+          order: 1
+          conditions:
+            - name: RequestScheme
+              parameters:
+                typeName: "DeliveryRuleRequestSchemeConditionParameters"
+                operator: "Equal"
+                negateCondition: false
+                matchValues: ["HTTPS"]
+          actions:
+            - name: "ModifyResponseHeader"
+              parameters:
+                typeName: "DeliveryRuleHeaderActionParameters"
+                headerAction: "Overwrite"
+                headerName: "Strict-Transport-Security"
+                value: "max-age=31536000; includeSubDomains; preload"
+
+  # Front Door configuration
+  frontDoor:
+    backendHostName: myapp-prod.azurewebsites.net
+    backendHostHeader: myapp-prod.azurewebsites.net
+    backendHttpPort: 80
+    backendHttpsPort: 443
+    path: '/*'
+    acceptedProtocols: HttpsOnly
+    routeType: Forwarding
+    enableCaching: true
+    customDomainName: myapp-frontend
+    customDomainHostName: app.contoso.com
+    keyVaultCertificateId: /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-keyvault-rg/providers/Microsoft.KeyVault/vaults/my-keyvault/secrets/wildcard-contoso-com
+    backendPools:
+      - name: "appServiceBackendPool"
+        backends:
+          - address: "myapp-prod.azurewebsites.net"
+            httpPort: 80
+            httpsPort: 443
+            priority: 1
+            weight: 50
+            enabled: true
+        healthProbeSettings:
+          protocol: Https
+          path: "/health"
+          intervalInSeconds: 30
+    frontendEndpoints:
+      - name: "defaultFrontendEndpoint"
+        hostName: "${projectName}-${environment}.azurefd.net"
+        sessionAffinityEnabled: true
+        sessionAffinityTtlSeconds: 0
+    routingRules:
+      - name: "httpsOnly"
+        acceptedProtocols: ["Https"]
+        patternsToMatch: ["/*"]
+        enabled: true
+        routeConfiguration:
+          forwardingProtocol: "HttpsOnly"
+          backendPoolName: "appServiceBackendPool"
+          cacheConfiguration:
+            queryParameterStripDirective: "StripNone"
+            queryParameters: "*"
+            dynamicCompression: "Enabled"
+
+  # Key Vault configuration
+  keyVault:
+    sku: standard
+    enabledForDeployment: true
+    enabledForTemplateDeployment: true
+    enabledForDiskEncryption: true
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 90
+    purgeProtectionEnabled: true
+    networkAcls:
+      defaultAction: "Deny"
+      bypass: "AzureServices"
+      ipRules: []
+      virtualNetworkRules: []
+
+  # App Insights configuration
+  appInsights:
+    applicationType: "web"
+    retentionInDays: 90
+    disableIpMasking: false
+    samplingPercentage: 100
+    workspaceMode: "Default"
+    publicNetworkAccessForIngestion: "Enabled"
+    publicNetworkAccessForQuery: "Enabled"
+
+  # Container Registry configuration
+  containerRegistry:
+    sku: Premium
+    adminUserEnabled: false
+    dataEndpointEnabled: true
+    networkRuleSet:
+      defaultAction: "Deny"
+      ipRules: []
+      virtualNetworkRules: []
+    policies:
+      quarantinePolicy:
+        status: "enabled"
+      trustPolicy:
+        type: "Notary"
+        status: "enabled"
+      retentionPolicy:
+        days: 30
+        status: "enabled"
+
+  # Container Instance configuration
+  containerInstance:
+    osType: Linux
+    restartPolicy: Always
+    ipAddress:
+      type: Public
+      ports:
+        - protocol: tcp
+          port: 80
+    containers:
+      - name: myapp-container
+        properties:
+          image: myacr.azurecr.io/myapp:latest
+          resources:
+            requests:
+              cpu: 1.0
+              memoryInGB: 1.5
+          ports:
+            - port: 80
+          environmentVariables: []
+          volumeMounts: []
+    volumes: []
+    diagnostics:
+      logAnalytics:
+        workspaceId: ""
+        workspaceKey: ""
+
+# Bicep settings
+bicepSettings:
+  linter:
+    enabled: true
+    rules:
+      no-unused-params: warning
+      no-unused-vars: warning
+      no-hardcoded-env-urls: warning
+      secure-parameter-default: error
+      outputs-should-not-contain-secrets: error

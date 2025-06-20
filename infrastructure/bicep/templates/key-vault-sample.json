@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "projectName": "sample-project",
+    "environment": "dev",
+    "location": "eastus"
+  },
+  "tags": {
+    "environment": "development",
+    "owner": "infrastructure-team",
+    "costCenter": "12345",
+    "application": "sample-app"
+  },
+  "featureToggles": {
+    "enableKeyVault": true,
+    "enableAppService": false,
+    "enableFunctionApp": false,
+    "enableStorageAccount": false,
+    "enableApiManagement": false
+  },
+  "moduleConfigurations": {
+    "keyVault": {
+      "name": "sample-key-vault",
+      "skuName": "standard",
+      "skuFamily": "A",
+      "enabledForDeployment": false,
+      "enabledForTemplateDeployment": true,
+      "enabledForDiskEncryption": false,
+      "enablePurgeProtection": true,
+      "softDeleteRetentionInDays": 90,
+      "enableRbacAuthorization": false,
+      "networkAcls": {
+        "defaultAction": "Deny",
+        "bypass": "AzureServices",
+        "ipRules": [
+          "203.0.113.0/24",
+          "198.51.100.10"
+        ],
+        "virtualNetworkRules": [
+          "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/virtualNetworks/{vnet-name}/subnets/{subnet-name}"
+        ]
+      },
+      "accessPolicies": [
+        {
+          "objectId": "00000000-0000-0000-0000-000000000000",
+          "tenantId": "00000000-0000-0000-0000-000000000000",
+          "permissions": {
+            "keys": [
+              "Get",
+              "List",
+              "Update",
+              "Create",
+              "Delete"
+            ],
+            "secrets": [
+              "Get",
+              "List",
+              "Set",
+              "Delete"
+            ],
+            "certificates": [
+              "Get",
+              "List",
+              "Update",
+              "Create",
+              "Delete"
+            ]
+          }
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DatabaseConnectionString",
+          "value": "Server=server.database.windows.net;Database=mydb;User Id=admin;Password=password;",
+          "contentType": "text/plain",
+          "enabled": true
+        },
+        {
+          "name": "ApiKey",
+          "value": "sample-api-key-value",
+          "contentType": "text/plain",
+          "enabled": true,
+          "expirationDate": "2025-12-31T23:59:59Z"
+        }
+      ],
+      "certificates": [
+        {
+          "name": "SampleCertificate",
+          "subject": "CN=example.com",
+          "validityInMonths": 12,
+          "subjectAlternativeNames": [
+            "www.example.com",
+            "api.example.com"
+          ]
+        }
+      ],
+      "keys": [
+        {
+          "name": "EncryptionKey",
+          "keyType": "RSA",
+          "keySize": 2048,
+          "keyOps": [
+            "encrypt",
+            "decrypt"
+          ]
+        }
+      ],
+      "privateEndpoint": {
+        "name": "sample-kv-pe",
+        "subnetId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/virtualNetworks/{vnet-name}/subnets/{subnet-name}",
+        "privateDnsZoneId": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Network/privateDnsZones/privatelink.vaultcore.azure.net"
+      }
+    }
+  }
+}

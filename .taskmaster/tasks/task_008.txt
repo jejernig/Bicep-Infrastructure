@@ -1,0 +1,114 @@
+# Task ID: 8
+# Title: Implement Shared APIM Integration
+# Status: in-progress
+# Dependencies: 2
+# Priority: high
+# Description: Create the logic to integrate with a shared API Management instance, allowing projects to register their APIs under unique namespaces.
+# Details:
+1. Create apimIntegration.bicep with parameters:
+   ```bicep
+   param apimMode string = 'shared' // 'shared' or 'dedicated'
+   param sharedApimResourceId string = ''
+   param projectName string
+   param apiName string
+   param apiPath string
+   param apiVersion string = 'v1'
+   param apiSpecificationFormat string = 'openapi+json'
+   param apiSpecificationValue string
+   param productName string = ''
+   
+   resource sharedApim 'Microsoft.ApiManagement/service@2021-08-01' existing = if (apimMode == 'shared') {
+     name: split(sharedApimResourceId, '/')[8]
+     scope: resourceGroup(split(sharedApimResourceId, '/')[4])
+   }
+   
+   resource dedicatedApim 'Microsoft.ApiManagement/service@2021-08-01' = if (apimMode == 'dedicated') {
+     name: '${projectName}-apim'
+     location: resourceGroup().location
+     sku: {
+       name: 'Developer'
+       capacity: 1
+     }
+     properties: {
+       publisherEmail: 'admin@example.com'
+       publisherName: projectName
+     }
+   }
+   
+   resource api 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
+     name: apiName
+     parent: apimMode == 'shared' ? sharedApim : dedicatedApim
+     properties: {
+       displayName: '${projectName} API'
+       path: apimMode == 'shared' ? '${projectName}/${apiVersion}' : apiPath
+       protocols: ['https']
+       format: apiSpecificationFormat
+       value: apiSpecificationValue
+     }
+   }
+   
+   resource product 'Microsoft.ApiManagement/service/products@2021-08-01' = if (!empty(productName)) {
+     name: productName
+     parent: apimMode == 'shared' ? sharedApim : dedicatedApim
+     properties: {
+       displayName: productName
+       state: 'published'
+       subscriptionRequired: true
+     }
+   }
+   
+   resource apiProductLink 'Microsoft.ApiManagement/service/products/apis@2021-08-01' = if (!empty(productName)) {
+     name: apiName
+     parent: product
+   }
+   ```
+2. Add support for API policies (rate limiting, CORS, etc.)
+3. Implement API versioning strategy
+4. Add subscription key management
+5. Configure backend service integration
+6. Expose outputs for API URL, portal URL, etc.
+
+# Test Strategy:
+1. Deploy to test environment with existing shared APIM
+2. Verify API registration under project namespace
+3. Test API operations and policies
+4. Validate product association
+5. Test subscription key generation and usage
+
+# Subtasks:
+## 1. Design APIM Operational Mode Architecture [done]
+### Dependencies: None
+### Description: Define the architecture for both shared and dedicated APIM operational modes, including resource group structures, naming conventions, and isolation patterns.
+### Details:
+Create detailed architecture diagrams showing how APIs will be organized in both shared and dedicated modes. Document the decision criteria for when to use each mode. Define isolation boundaries between different projects sharing the same APIM instance. Establish naming conventions for APIs, products, and policies that ensure uniqueness across projects.
+
+## 2. Implement API Registration Mechanism [done]
+### Dependencies: 8.1
+### Description: Develop a standardized process for registering APIs in the APIM instance that works across both shared and dedicated modes.
+### Details:
+Create templates for API definitions that include required metadata. Implement validation checks to ensure API paths don't conflict across projects in shared mode. Develop automation scripts for API registration that handle cross-resource group references. Include documentation on how to register APIs with proper versioning information.
+
+## 3. Configure APIM Policy Framework [done]
+### Dependencies: 8.1, 8.2
+### Description: Establish a hierarchical policy framework that allows for global, product-level, and API-level policies while maintaining isolation between projects.
+### Details:
+Define global policies that apply to all APIs. Create templates for product and API-level policies. Implement a mechanism to prevent policy conflicts between different projects. Develop a testing framework to validate policy behavior. Document the policy inheritance model and override capabilities.
+
+## 4. Implement Product Association Strategy [done]
+### Dependencies: 8.2
+### Description: Design and implement a system for organizing APIs into products that maintains proper boundaries between different projects.
+### Details:
+Define product creation guidelines including naming conventions and metadata requirements. Implement access control mechanisms to ensure projects can only modify their own products. Create automation for associating APIs with products. Document the product lifecycle management process including creation, updates, and deprecation.
+
+## 5. Develop API Versioning Strategy [done]
+### Dependencies: 8.2
+### Description: Establish a consistent approach to API versioning that works across both shared and dedicated APIM modes.
+### Details:
+Define version numbering scheme and path structure. Implement mechanisms for maintaining multiple API versions simultaneously. Create processes for deprecating and retiring old versions. Develop documentation templates that clearly communicate version differences to API consumers. Implement version-specific policy capabilities.
+
+## 6. Implement Subscription Management System [done]
+### Dependencies: 8.3, 8.4
+### Description: Design and implement a subscription management system that handles project-specific access control and usage tracking.
+### Details:
+Develop subscription approval workflows for different project scenarios. Implement usage quotas and rate limiting appropriate for each project. Create reporting mechanisms to track API usage by project and subscription. Document the subscription lifecycle including creation, approval, renewal, and revocation processes. Implement notification systems for subscription-related events.
+
