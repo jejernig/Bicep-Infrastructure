@@ -1,0 +1,299 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (dev, qa, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      configPath:
+        description: 'Path to configuration YAML file'
+        required: true
+        default: './infrastructure/bicep/templates/dev.yaml'
+        type: string
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./scripts
+        
+      - name: Validate configuration
+        run: node ./validate-config.js ${{ github.event.inputs.configPath }} ${{ github.event.inputs.environment }}
+        working-directory: ./infrastructure/scripts
+        
+      - name: Load environment configuration
+        id: env-config
+        run: |
+          CONFIG_PATH="./config/environments/${{ github.event.inputs.environment }}.json"
+          echo "CONFIG_PATH=$CONFIG_PATH" >> $GITHUB_ENV
+          
+          if [ -f "$CONFIG_PATH" ]; then
+            echo "Loading environment configuration from $CONFIG_PATH"
+            cat "$CONFIG_PATH"
+            
+            # Extract approval requirements for GitHub Environment protection rules
+            REQUIRED_APPROVERS=$(jq -r '.approvalRequirements.requiredApprovers' "$CONFIG_PATH")
+            TIMEOUT_MINUTES=$(jq -r '.approvalRequirements.timeoutMinutes' "$CONFIG_PATH")
+            
+            echo "Required approvers: $REQUIRED_APPROVERS"
+            echo "Timeout minutes: $TIMEOUT_MINUTES"
+            
+            # Set environment variables for use in later steps
+            echo "REQUIRED_APPROVERS=$REQUIRED_APPROVERS" >> $GITHUB_ENV
+            echo "TIMEOUT_MINUTES=$TIMEOUT_MINUTES" >> $GITHUB_ENV
+          else
+            echo "Warning: Environment configuration file not found at $CONFIG_PATH"
+            echo "Using default configuration"
+            
+            # Set default values
+            echo "REQUIRED_APPROVERS=0" >> $GITHUB_ENV
+            echo "TIMEOUT_MINUTES=60" >> $GITHUB_ENV
+          fi
+
+  deploy:
+    name: Deploy Bicep Infrastructure
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Install Bicep CLI
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+          chmod +x ./bicep
+          sudo mv ./bicep /usr/local/bin/bicep
+          bicep --version
+      
+      - name: Set resource group name
+        id: set-rg
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "RESOURCE_GROUP=${{ secrets.RESOURCE_GROUP_DEV }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "RESOURCE_GROUP=${{ secrets.RESOURCE_GROUP_QA }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "RESOURCE_GROUP=${{ secrets.RESOURCE_GROUP_PROD }}" >> $GITHUB_ENV
+          else
+            echo "Error: Unknown environment ${{ github.event.inputs.environment }}"
+            exit 1
+          fi
+          
+          # Echo the resource group for verification
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "Using resource group: ${{ secrets.RESOURCE_GROUP_DEV }}"
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "Using resource group: ${{ secrets.RESOURCE_GROUP_QA }}"
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "Using resource group: ${{ secrets.RESOURCE_GROUP_PROD }}"
+          fi
+          
+      - name: Run What-If Analysis
+        id: whatif
+        run: |
+          echo "Running What-If Analysis for ${{ github.event.inputs.environment }} environment"
+          mkdir -p whatif-output
+          
+          # Set resource group variable for this step
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_DEV }}"
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_QA }}"
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_PROD }}"
+          fi
+          
+          # Run what-if analysis and save output
+          az deployment group what-if \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file ./infrastructure/bicep/main.bicep \
+            --parameters configFile=${{ github.event.inputs.configPath }} \
+            --output json > whatif-output/whatif-results.json
+          
+          # Format the what-if results for better readability in the logs
+          echo "## What-If Analysis Results" >> $GITHUB_STEP_SUMMARY
+          echo "The following changes will be made to the infrastructure:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract and display resource changes
+          jq -r '.changes[] | "* " + .resourceId + ": " + .changeType' whatif-output/whatif-results.json >> $GITHUB_STEP_SUMMARY
+          
+          # Save what-if results as an artifact
+          echo "What-If analysis complete. Results saved to artifact."
+          
+      - name: Upload What-If Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: whatif-results-${{ github.event.inputs.environment }}
+          path: whatif-output/
+          retention-days: 30
+      
+      - name: Prepare deployment parameters
+        id: prepare-params
+        run: |
+          # Create parameters file with environment-specific settings
+          mkdir -p deployment-params
+          
+          # Start with base parameters from the config file
+          echo "Creating deployment parameters file"
+          echo "{
+            \"configFile\": {\"value\": \"${{ github.event.inputs.configPath }}\"}
+          }" > deployment-params/parameters.json
+          
+          # Define environment config path directly
+          CONFIG_PATH="./config/environments/${{ github.event.inputs.environment }}.json"
+          
+          # Add environment-specific parameters if available
+          if [ -f "$CONFIG_PATH" ]; then
+            echo "Loading environment configuration from $CONFIG_PATH"
+            
+            # Extract deployment settings from environment config
+            ENABLE_RESOURCE_LOCKS=$(jq -r '.deploymentSettings.enableResourceLocks' "$CONFIG_PATH")
+            ENABLE_DIAGNOSTICS=$(jq -r '.deploymentSettings.enableDiagnostics' "$CONFIG_PATH")
+            ENABLE_BACKUPS=$(jq -r '.deploymentSettings.enableAutomatedBackups' "$CONFIG_PATH")
+            
+            # Get resource tags as JSON string
+            RESOURCE_TAGS=$(jq -c '.deploymentSettings.resourceTags' "$CONFIG_PATH")
+            
+            # Update parameters file with environment settings
+            jq --arg locks "$ENABLE_RESOURCE_LOCKS" \
+               --arg diag "$ENABLE_DIAGNOSTICS" \
+               --arg backups "$ENABLE_BACKUPS" \
+               --argjson tags "$RESOURCE_TAGS" \
+               '. += {"enableResourceLocks": {"value": ($locks | test("true"))}, 
+                      "enableDiagnostics": {"value": ($diag | test("true"))}, 
+                      "enableAutomatedBackups": {"value": ($backups | test("true"))}, 
+                      "resourceTags": {"value": $tags}}' \
+               deployment-params/parameters.json > deployment-params/parameters.json.tmp \
+               && mv deployment-params/parameters.json.tmp deployment-params/parameters.json
+          else
+            echo "Warning: Environment configuration file not found at $CONFIG_PATH"
+            echo "Using default configuration"
+          fi
+          
+          echo "Final parameters file:"
+          cat deployment-params/parameters.json
+      
+      - name: Deploy Bicep
+        id: deploy
+        run: |
+          # Set resource group variable for this step
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_DEV }}"
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_QA }}"
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_PROD }}"
+          fi
+          
+          # Deploy using the Azure CLI instead of the action
+          DEPLOYMENT_NAME="bicep-${{ github.event.inputs.environment }}-${{ github.run_number }}"
+          
+          echo "Deploying Bicep template to resource group $RESOURCE_GROUP"
+          DEPLOYMENT_OUTPUT=$(az deployment group create \
+            --name "$DEPLOYMENT_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --template-file ./infrastructure/bicep/main.bicep \
+            --parameters @deployment-params/parameters.json \
+            --output json)
+            
+          # Save deployment outputs for later steps
+          echo "$DEPLOYMENT_OUTPUT" > deployment-outputs/outputs.json
+          
+          # Extract just the outputs section for the GitHub output
+          OUTPUTS=$(echo "$DEPLOYMENT_OUTPUT" | jq -c '.properties.outputs')
+          echo "DeploymentOutputs=$OUTPUTS" >> $GITHUB_OUTPUT
+      
+      - name: Process deployment outputs
+        id: process-outputs
+        run: |
+          echo "Processing deployment outputs"
+          mkdir -p deployment-outputs
+          
+          # Save raw deployment outputs
+          echo '${{ steps.deploy.outputs.DeploymentOutputs }}' > deployment-outputs/raw-outputs.json
+          
+          # Extract and format outputs for better readability
+          echo '${{ steps.deploy.outputs.DeploymentOutputs }}' | jq '.' > deployment-outputs/formatted-outputs.json
+          
+          # Create a summary file with key outputs
+          echo "# Deployment Summary for ${{ github.event.inputs.environment }}" > deployment-outputs/summary.md
+          echo "Deployment completed at $(date)" >> deployment-outputs/summary.md
+          echo "" >> deployment-outputs/summary.md
+          echo "## Key Resources" >> deployment-outputs/summary.md
+          
+          # Extract key outputs and add to summary
+          if [[ -s deployment-outputs/formatted-outputs.json ]]; then
+            # Extract resource endpoints if they exist
+            jq -r 'to_entries | .[] | "* **" + .key + "**: " + (.value.value | tostring)' deployment-outputs/formatted-outputs.json >> deployment-outputs/summary.md
+          else
+            echo "No outputs were returned from the deployment." >> deployment-outputs/summary.md
+          fi
+          
+          # Add deployment metadata
+          echo "" >> deployment-outputs/summary.md
+          echo "## Deployment Metadata" >> deployment-outputs/summary.md
+          echo "* **Environment**: ${{ github.event.inputs.environment }}" >> deployment-outputs/summary.md
+          echo "* **Configuration**: ${{ github.event.inputs.configPath }}" >> deployment-outputs/summary.md
+          echo "* **Deployment ID**: bicep-${{ github.event.inputs.environment }}-${{ github.run_number }}" >> deployment-outputs/summary.md
+          echo "* **Triggered by**: ${{ github.actor }}" >> deployment-outputs/summary.md
+          echo "* **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> deployment-outputs/summary.md
+          
+          # Display the summary in the workflow
+          cat deployment-outputs/summary.md >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload deployment outputs
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-outputs-${{ github.event.inputs.environment }}
+          path: deployment-outputs/
+          retention-days: 30
+          
+      - name: Store outputs for future reference
+        run: |
+          # Create a timestamped directory for this deployment
+          TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+          OUTPUTS_DIR="./.deployment-history/${{ github.event.inputs.environment }}/$TIMESTAMP"
+          mkdir -p "$OUTPUTS_DIR"
+          
+          # Copy all output files to the history directory
+          cp -r deployment-outputs/* "$OUTPUTS_DIR"/
+          
+          # Create a simple index file to track deployments
+          echo "# Deployment History" > ./.deployment-history/README.md
+          echo "Latest deployment: ${{ github.event.inputs.environment }} at $TIMESTAMP" >> ./.deployment-history/README.md
+          
+          # Commit the outputs if running in the main repository (not a PR)
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add ./.deployment-history
+            git commit -m "Store deployment outputs for ${{ github.event.inputs.environment }} [$TIMESTAMP]" || echo "No changes to commit"
+            git push || echo "Failed to push deployment history"
+          fi

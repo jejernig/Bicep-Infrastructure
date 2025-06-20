@@ -1,6 +1,6 @@
-# Bicep Infrastructure
+# Bicep Infrastructure Template Repository
 
-This repository contains Azure Bicep Infrastructure as Code (IaC) templates and a configuration system for deploying and managing Azure resources.
+This repository serves as a template for Azure Bicep Infrastructure as Code (IaC) deployments. It contains reusable workflows, configuration structures, and documentation to standardize infrastructure deployments across projects.
 
 ## Overview
 

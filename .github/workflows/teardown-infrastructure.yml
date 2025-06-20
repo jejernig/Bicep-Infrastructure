@@ -1,0 +1,177 @@
+name: Teardown Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to teardown (dev, qa, prod)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      confirmation:
+        description: 'Type the environment name again to confirm deletion'
+        required: true
+        type: string
+
+jobs:
+  validate-confirmation:
+    name: Validate Teardown Confirmation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check confirmation matches environment
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "${{ github.event.inputs.environment }}" ]; then
+            echo "Confirmation does not match environment. Aborting teardown."
+            exit 1
+          fi
+          echo "Confirmation validated. Proceeding with teardown."
+
+  teardown:
+    name: Teardown Resources
+    needs: validate-confirmation
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    # Add additional protection for production environment
+    if: ${{ github.event.inputs.environment != 'prod' || (github.event.inputs.environment == 'prod' && github.actor == 'admin-user') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Set resource group name
+        id: set-rg
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "RESOURCE_GROUP=${{ secrets.RESOURCE_GROUP_DEV }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "RESOURCE_GROUP=${{ secrets.RESOURCE_GROUP_QA }}" >> $GITHUB_ENV
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "RESOURCE_GROUP=${{ secrets.RESOURCE_GROUP_PROD }}" >> $GITHUB_ENV
+          fi
+          
+      - name: Get resource list
+        id: resource-list
+        run: |
+          # Set resource group variable for this step
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_DEV }}"
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_QA }}"
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_PROD }}"
+          fi
+          
+          echo "Getting resources in resource group $RESOURCE_GROUP"
+          az resource list --resource-group "$RESOURCE_GROUP" --output json > resources.json
+          echo "Found $(jq length resources.json) resources"
+          
+      - name: Delete resources in reverse dependency order
+        run: |
+          # Set resource group variable for this step
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_DEV }}"
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_QA }}"
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            RESOURCE_GROUP="${{ secrets.RESOURCE_GROUP_PROD }}"
+          fi
+          
+          # This script deletes resources in reverse dependency order
+          # First, identify resource types and their dependencies
+          
+          # Delete Front Door resources first (if any)
+          az resource list --resource-group "$RESOURCE_GROUP" --resource-type "Microsoft.Network/frontDoors" --query "[].id" -o tsv | xargs -r -I {} az resource delete --ids {} --verbose
+          
+          # Delete CDN resources
+          az resource list --resource-group "$RESOURCE_GROUP" --resource-type "Microsoft.Cdn/profiles" --query "[].id" -o tsv | xargs -r -I {} az resource delete --ids {} --verbose
+          
+          # Delete Redis Cache
+          az resource list --resource-group "$RESOURCE_GROUP" --resource-type "Microsoft.Cache/Redis" --query "[].id" -o tsv | xargs -r -I {} az resource delete --ids {} --verbose
+          
+          # Delete Service Bus resources
+          az resource list --resource-group "$RESOURCE_GROUP" --resource-type "Microsoft.ServiceBus/namespaces" --query "[].id" -o tsv | xargs -r -I {} az resource delete --ids {} --verbose
+          
+          # Delete remaining resources
+          az group deployment delete --name bicep-teardown-${{ github.run_number }} --resource-group "$RESOURCE_GROUP"
+      
+      - name: Generate teardown report
+        id: teardown-report
+        run: |
+          # Create output directory for teardown results
+          mkdir -p teardown-outputs
+          
+          # Create a summary file with teardown details
+          echo "# Teardown Summary for ${{ github.event.inputs.environment }}" > teardown-outputs/summary.md
+          echo "Teardown completed at $(date)" >> teardown-outputs/summary.md
+          echo "" >> teardown-outputs/summary.md
+          
+          # Add teardown metadata
+          echo "## Teardown Metadata" >> teardown-outputs/summary.md
+          echo "* **Environment**: ${{ github.event.inputs.environment }}" >> teardown-outputs/summary.md
+          
+          # Get the resource group name based on environment
+          if [ "${{ github.event.inputs.environment }}" == "dev" ]; then
+            echo "* **Resource Group**: ${{ secrets.RESOURCE_GROUP_DEV }}" >> teardown-outputs/summary.md
+          elif [ "${{ github.event.inputs.environment }}" == "qa" ]; then
+            echo "* **Resource Group**: ${{ secrets.RESOURCE_GROUP_QA }}" >> teardown-outputs/summary.md
+          elif [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "* **Resource Group**: ${{ secrets.RESOURCE_GROUP_PROD }}" >> teardown-outputs/summary.md
+          fi
+          
+          echo "* **Triggered by**: ${{ github.actor }}" >> teardown-outputs/summary.md
+          echo "* **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> teardown-outputs/summary.md
+          
+          # Add resource deletion summary if available
+          if [[ -f "resources.json" ]]; then
+            echo "" >> teardown-outputs/summary.md
+            echo "## Removed Resources" >> teardown-outputs/summary.md
+            jq -r '.[] | "* " + .type + ": " + .name' resources.json >> teardown-outputs/summary.md
+          fi
+          
+          # Display the summary in the workflow
+          cat teardown-outputs/summary.md >> $GITHUB_STEP_SUMMARY
+          
+          # Save the original resource list for reference
+          if [[ -f "resources.json" ]]; then
+            cp resources.json teardown-outputs/resources.json
+          fi
+      
+      - name: Upload teardown outputs
+        uses: actions/upload-artifact@v3
+        with:
+          name: teardown-outputs-${{ github.event.inputs.environment }}
+          path: teardown-outputs/
+          retention-days: 30
+          
+      - name: Store teardown record
+        run: |
+          # Create a timestamped directory for this teardown
+          TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+          OUTPUTS_DIR="./.teardown-history/${{ github.event.inputs.environment }}/$TIMESTAMP"
+          mkdir -p "$OUTPUTS_DIR"
+          
+          # Copy all output files to the history directory
+          cp -r teardown-outputs/* "$OUTPUTS_DIR"/
+          
+          # Create a simple index file to track teardowns
+          echo "# Teardown History" > ./.teardown-history/README.md
+          echo "Latest teardown: ${{ github.event.inputs.environment }} at $TIMESTAMP" >> ./.teardown-history/README.md
+          
+          # Commit the outputs if running in the main repository (not a PR)
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add ./.teardown-history
+            git commit -m "Store teardown record for ${{ github.event.inputs.environment }} [$TIMESTAMP]" || echo "No changes to commit"
+            git push || echo "Failed to push teardown history"
+          fi

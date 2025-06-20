@@ -1,0 +1,25 @@
+{
+  "environment": "qa",
+  "deploymentSettings": {
+    "enableResourceLocks": true,
+    "enableDiagnostics": true,
+    "enableAutomatedBackups": true,
+    "resourceTags": {
+      "Environment": "QA",
+      "CostCenter": "IT-QA",
+      "ManagedBy": "DevOps"
+    }
+  },
+  "approvalRequirements": {
+    "requiredApprovers": 1,
+    "timeoutMinutes": 1440
+  },
+  "alertSettings": {
+    "notificationEmails": ["qa-alerts@example.com"],
+    "alertThresholds": {
+      "cpuThreshold": 75,
+      "memoryThreshold": 75,
+      "storageThreshold": 80
+    }
+  }
+}

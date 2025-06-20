@@ -1,0 +1,25 @@
+{
+  "environment": "prod",
+  "deploymentSettings": {
+    "enableResourceLocks": true,
+    "enableDiagnostics": true,
+    "enableAutomatedBackups": true,
+    "resourceTags": {
+      "Environment": "Production",
+      "CostCenter": "IT-Prod",
+      "ManagedBy": "DevOps"
+    }
+  },
+  "approvalRequirements": {
+    "requiredApprovers": 2,
+    "timeoutMinutes": 2880
+  },
+  "alertSettings": {
+    "notificationEmails": ["prod-alerts@example.com", "oncall@example.com"],
+    "alertThresholds": {
+      "cpuThreshold": 70,
+      "memoryThreshold": 70,
+      "storageThreshold": 75
+    }
+  }
+}

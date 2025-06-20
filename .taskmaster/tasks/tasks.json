@@ -506,7 +506,7 @@
         "dependencies": [
           2
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -568,7 +568,7 @@
           8,
           9
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -576,7 +576,7 @@
             "description": "Create the basic GitHub Actions workflow file structure with proper triggers, permissions, and job organization.",
             "dependencies": [],
             "details": "Create a .github/workflows directory and define the main workflow YAML file. Include appropriate triggers (push, pull request, manual), set required permissions for Azure deployments, and organize jobs with proper naming conventions. Define reusable workflow patterns and ensure proper checkout of repository code.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 2,
@@ -586,7 +586,7 @@
               1
             ],
             "details": "Create validation jobs that run 'az bicep build' to check template syntax, implement linting for Bicep files, validate parameter files against schemas, and ensure all required parameters are provided. Add steps to verify Azure resource naming conventions and policy compliance before actual deployment.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 3,
@@ -596,7 +596,7 @@
               2
             ],
             "details": "Add a dedicated job that runs 'az deployment group what-if' to generate a preview of changes. Format and display the output in the GitHub Actions logs. Implement conditional logic to proceed with deployment only if what-if analysis shows acceptable changes. Consider adding approval gates for significant changes.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 4,
@@ -606,7 +606,7 @@
               3
             ],
             "details": "Create environment-specific parameter files and deployment configurations. Implement environment-based conditional deployment logic. Set up GitHub Environments with appropriate protection rules and approvals for production deployments. Configure environment-specific secrets and variables in GitHub repository settings.",
-            "status": "pending"
+            "status": "done"
           },
           {
             "id": 5,
@@ -616,7 +616,7 @@
               4
             ],
             "details": "Add steps to capture and store deployment outputs as artifacts or environment variables. Create a separate teardown workflow that safely removes resources in reverse dependency order. Implement safeguards to prevent accidental deletion of production resources. Add confirmation steps and environment locks for destructive operations.",
-            "status": "pending"
+            "status": "in-progress"
           }
         ]
       },
@@ -704,7 +704,7 @@
     ],
     "metadata": {
       "created": "2025-06-19T14:52:26.384Z",
-      "updated": "2025-06-20T01:29:19.131Z",
+      "updated": "2025-06-20T02:58:54.898Z",
       "description": "Tasks for master context"
     }
   }

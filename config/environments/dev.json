@@ -1,0 +1,25 @@
+{
+  "environment": "dev",
+  "deploymentSettings": {
+    "enableResourceLocks": false,
+    "enableDiagnostics": true,
+    "enableAutomatedBackups": false,
+    "resourceTags": {
+      "Environment": "Development",
+      "CostCenter": "IT-Dev",
+      "ManagedBy": "DevOps"
+    }
+  },
+  "approvalRequirements": {
+    "requiredApprovers": 0,
+    "timeoutMinutes": 60
+  },
+  "alertSettings": {
+    "notificationEmails": ["dev-alerts@example.com"],
+    "alertThresholds": {
+      "cpuThreshold": 80,
+      "memoryThreshold": 80,
+      "storageThreshold": 85
+    }
+  }
+}
